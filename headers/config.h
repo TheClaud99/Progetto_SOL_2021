@@ -47,7 +47,7 @@ typedef struct configurazione {
     char stats_file_name[PATH_MAX];*/
 } Config;
 
-Config config;
+Config config = {1, 5, 128000000, 10000, "sock_file.sk"};
 
 // Dato il nome del file di configurazione, carica la i parametri nella config globale
 int load_config(char *filename) {
