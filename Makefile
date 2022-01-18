@@ -1,5 +1,4 @@
-
-# ------------ CARTELLE ------------ 
+# ------------ CARTELLE ------------
 # Cartella dei file oggetto
 OBJECT_FOLDER = build/objects
 # Cartella delle librerie

@@ -1,7 +1,6 @@
 /**
  * @file    config.h
  * @brief   Contiene l'header delle funzioni per caricare il config e la struttura che contiene il config.
- * @author  Leonardo Pantani
 **/
 
 #ifndef CONFIG_H_
@@ -45,21 +44,13 @@ typedef struct configurazione {
     char socket_file_name[PATH_MAX];
     /*char log_file_name[PATH_MAX];
     char stats_file_name[PATH_MAX];*/
-} Config;
+} config_t;
 
-Config config = {1, 5, 128000000, 10000, "sock_file.sk"};
+config_t config;
+
+int load_defaults();
 
 // Dato il nome del file di configurazione, carica la i parametri nella config globale
-int load_config(char *filename) {
-    ini_t *config_file = ini_load(filename);
-
-    config.max_workers = (int) strtol(ini_get(config_file, "settings", "max_workers"), NULL, 10);
-    config.max_connections = (int) strtol(ini_get(config_file, "settings", "max_connections"), NULL, 10);
-    config.max_memory_size = (int) strtol(ini_get(config_file, "settings", "max_memory_size"), NULL, 10);
-    strcpy(config.socket_file_name, ini_get(config_file, "settings", "max_memory_size"));
-    ini_free(config_file);
-
-    return 0;
-}
+int load_config(char *filename);
 
 #endif /* CONFIG_H_ */
