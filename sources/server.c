@@ -28,7 +28,7 @@
 
 #define MAX_EVENTS      32
 #define BUF_SIZE        16
-#define WELCOME_MESSAGE "Benvenuto, sono in attesa di tue richieste."
+#define WELCOME_MESSAGE "Connessione avvenuta con successo"
 
 struct epoll_event ev, events[MAX_EVENTS];
 
@@ -106,6 +106,8 @@ void server_run() {
                 epoll_ctl_add(epfd, conn_sock,EPOLLIN);
 
                 printf("[+] New client connected, fd: %d\n", conn_sock);
+
+                send_message(conn_sock, RESP_SUCCES);
             } else if (events[i].events & EPOLLIN) {
                 /* handle EPOLLIN event */
                 for (;;) {
@@ -125,8 +127,7 @@ void server_run() {
             /* check if the connection is closing */
             if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
                 printf("[+] connection closed\n");
-                epoll_ctl(epfd, EPOLL_CTL_DEL,
-                          events[i].data.fd, NULL);
+                epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
                 close(events[i].data.fd);
                 continue;
             }

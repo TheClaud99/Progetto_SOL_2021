@@ -63,7 +63,7 @@ void summstotimespec(struct timespec *ts, long msec)
 }
 
 /* msleep(): Sleep for the requested number of milliseconds. */
-/*int msleep(long msec)
+int msleep(long msec)
 {
     struct timespec ts;
     int res;
@@ -83,4 +83,11 @@ void summstotimespec(struct timespec *ts, long msec)
     } while (res && errno == EINTR);
 
     return res;
-}*/
+}
+
+struct timespec get_abs_time_from_now(int seconds_from_now) {
+    struct timespec abstime;
+    time_t now = time(NULL);//Gestire errore
+    abstime.tv_sec = now + seconds_from_now;
+    return abstime;
+}

@@ -36,3 +36,23 @@ int writen(long fd, void *buf, size_t size) {
     }
     return 1;
 }
+
+int send_message(int fd, response_t response) {
+
+    // mando sempre tutto il messaggio (il body sarà vuoto)
+    int ret = (int) write(fd, &response, sizeof(response));
+    int resp_size = sizeof(response);
+
+    ec_cond(ret == sizeof(response), "send message");
+
+    return 0;
+}
+
+void write_files(char *files) {
+    while (files != NULL) {
+
+
+
+        files++;
+    }
+}

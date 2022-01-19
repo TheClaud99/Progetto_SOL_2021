@@ -41,13 +41,13 @@ client: libs/libcomm.so libs/libapi.so
 
 # --------- LIBRERIE -----------
 
-libs/libcomm.so: $(OBJECT_FOLDER)/communication.o
+libs/libcomm.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/utils.o
 	$(CC) -shared -o $(LIB_FOLDER)/libcomm.so $^
 
-libs/libserver.so: $(OBJECT_FOLDER)/config.o $(OBJECT_FOLDER)/statistics.o $(OBJECT_FOLDER)/ini.o
+libs/libserver.so: $(OBJECT_FOLDER)/config.o $(OBJECT_FOLDER)/statistics.o $(OBJECT_FOLDER)/ini.o $(OBJECT_FOLDER)/utils.o
 	$(CC) -shared -o $(LIB_FOLDER)/libserver.so $^
 
-libs/libapi.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/api.o
+libs/libapi.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/api.o $(OBJECT_FOLDER)/utils.o
 	$(CC) -shared -o $(LIB_FOLDER)/libapi.so $^
 
 # --------- FILE OGGETTO -----------

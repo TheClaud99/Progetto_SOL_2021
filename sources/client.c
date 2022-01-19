@@ -25,22 +25,24 @@
 #define LOG_FOLDER_NAME "TestDirectory/output/Client/" // cartella dove caricare il file di log (DEVE terminare con un /)
 #define LOG_FILE_NAME   "client_log.txt" // nome del file di log
 #define MAX_LINE        256
+#define MAX_ACTIONS        256
+#define MAX_PARAMS 256
 
 FILE *fileLog; // puntatore al file di log del client
 
 char socket_file_name[PATH_MAX];
-int verbose = 0;
 
-static void set_sockaddr(struct sockaddr_un *addr) {
-    memset(addr, 0, sizeof(*addr));
-    addr->sun_family = AF_UNIX;
-    strcpy(addr->sun_path, socket_file_name);
-}
+typedef struct operation {
+    int param;
+    char arguments[MAX_LINE];
+} operation_t;
+
+operation_t ops[MAX_PARAMS];
 
 /*
  * test clinet
  */
-void client_run() {
+/*void client_run() {
     int n, c, sockfd;
     char buf[MAX_LINE];
     struct sockaddr_un srv_addr;
@@ -72,7 +74,7 @@ void client_run() {
         }
     }
     close(sockfd);
-}
+}*/
 
 static void help(void) {
     printf("Utilizzo:\n");
@@ -91,8 +93,11 @@ static void help(void) {
     printf("    -p                 \t abilita le stampe sull'stdout di ogni operazione\n");
 }
 
-void set_options(int argc, char *argv[]) {
-    int opt;
+
+int set_operations(int argc, char *argv[]) {
+    int opt, count_ops = 0;
+    verbose = 0;
+
     while ((opt = getopt(argc, argv, ":hf:w:W:D:r:R:d:t:l:u:c:p")) != -1) {
         switch (opt) {
             case 'p': {  // attiva la modalità debug
@@ -108,14 +113,28 @@ void set_options(int argc, char *argv[]) {
                 strcpy(socket_file_name, optarg);
                 break;
             }
-            case 'w': { // salva i file contenuti in una cartella su server
+
+            case '?': { // opzione non valida
+                printf("> Argomento %c non riconosciuto", optopt);
                 break;
             }
 
-            case 'W': { // salva i file separati da virgola
+            default:
+                // Memorizzo le operazioni che sono state richieste
+                strcpy(ops[count_ops].arguments, optarg);
+                ops[count_ops].param = opt;
+                count_ops++;
                 break;
-            }
+        }
+    }
 
+    return count_ops;
+}
+
+
+void execute_ops(int count_ops) {
+    for (int i = 0; i < count_ops; i++) {
+        switch (ops[i].param) {
             case 'D': { // cartella dove salvare file espulsi dal server (INSIEME A w|W!)
                 break;
             }
@@ -159,22 +178,22 @@ void set_options(int argc, char *argv[]) {
                 }
                 break;
             }
-
-            case '?': { // opzione non valida
-                printf("> Argomento %c non riconosciuto", optopt);
-                break;
-            }
-
-            default:
-                break;
         }
     }
+}
+
+void set_options(int argc, char *argv[]) {
+    int count_ops;
+
+    count_ops = set_operations(argc, argv);
+
+    openConnection(socket_file_name, 1000, get_abs_time_from_now(20));
+    execute_ops(count_ops);
 }
 
 int main(int argc, char *argv[]) {
 
     set_options(argc, argv);
-    client_run();
 
     return 0;
 }

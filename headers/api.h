@@ -15,7 +15,10 @@
 #include <libgen.h>
 #include <linux/limits.h>
 #include <time.h>
+#include "utils.h"
 
+// Se impostato, la modalità debug è attiva
+int verbose;
 
 /**
  * @brief Apre connessione AF_UNIX e ripete più volte la richiesta fino ad un certo tempo.
