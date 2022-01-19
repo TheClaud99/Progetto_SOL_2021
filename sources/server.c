@@ -55,6 +55,25 @@ static void set_sockaddr(struct sockaddr_un *addr) {
     strcpy(addr->sun_path, config.socket_file_name);
 }
 
+
+int create_socket(struct sockaddr_un* addr) {
+    int listen_sock;
+
+    // controllo se il file socket esiste già, nel caso lo elimino
+    if( access( config.socket_file_name, F_OK ) == 0 ) {
+        ec_meno1(remove(config.socket_file_name), "Delete socket file");
+    }
+
+    ec_meno1(listen_sock = socket(AF_UNIX, SOCK_STREAM, 0), "Socket");
+
+    set_sockaddr(addr);
+    ec_meno1(bind(listen_sock, (struct sockaddr *) addr, sizeof(*addr)), "Binding");
+
+    ec_meno1(listen(listen_sock, config.max_connections), "Listen");
+
+    return listen_sock;
+}
+
 /*
  * epoll echo server
  */
@@ -70,12 +89,7 @@ void server_run() {
     struct sockaddr_un srv_addr;
     struct sockaddr_un cli_addr;
 
-    ec_meno1(listen_sock = socket(AF_UNIX, SOCK_STREAM, 0), "Socket");
-
-    set_sockaddr(&srv_addr);
-    ec_meno1(bind(listen_sock, (struct sockaddr *) &srv_addr, sizeof(srv_addr)), "Binding");
-
-    ec_meno1(listen(listen_sock, config.max_connections), "Listen");
+    listen_sock = create_socket(&srv_addr);
 
     epfd = epoll_create1(0);
     epoll_ctl_add(epfd, listen_sock, EPOLLIN);
@@ -122,9 +136,8 @@ void server_run() {
 
 int main(int argc, char *argv[]) {
 
-    char *config_filename = NULL;
-
     if (argc >= 3 && strcmp(argv[1], "-conf") == 0) {
+        char *config_filename = NULL;
         config_filename = argv[2];
         load_config(config_filename);
     } else {
