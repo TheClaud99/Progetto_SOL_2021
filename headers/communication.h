@@ -80,5 +80,8 @@ typedef struct {
     char*       data;
 } Message;
 
+int readn(long fd, void *buf, size_t size);
+
+int writen(long fd, void *buf, size_t size);
 
 #endif /* COMMUNICATION_H_ */

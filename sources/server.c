@@ -23,6 +23,7 @@
 #include "file.h"
 #include "statistics.h"
 #include "utils.h"
+#include "communication.h"
 
 
 #define MAX_EVENTS      32
@@ -102,14 +103,14 @@ void server_run() {
             if (events[i].data.fd == listen_sock) {
                 /* handle new connection */
                 conn_sock = accept(listen_sock, (struct sockaddr *) &cli_addr, &socklen);
-
                 epoll_ctl_add(epfd, conn_sock,EPOLLIN);
+
+                printf("[+] New client connected, fd: %d\n", conn_sock);
             } else if (events[i].events & EPOLLIN) {
                 /* handle EPOLLIN event */
                 for (;;) {
                     memset(buf, 0, sizeof(buf));
-                    n = (int) read(events[i].data.fd, buf,
-                             sizeof(buf));
+                    n = (int) read(events[i].data.fd, buf, sizeof(buf));
                     if (n <= 0 /* || errno == EAGAIN */ ) {
                         break;
                     } else {

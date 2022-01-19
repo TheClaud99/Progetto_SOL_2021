@@ -52,7 +52,7 @@ libs/libapi.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/api.o
 
 # --------- FILE OGGETTO -----------
 
-$(OBJECT_FOLDER)/api.o: $(API_FOLDER)/api.c $(HEADERS_FOLDER)/api.h $(HEADERS_FOLDER)/conn.h
+$(OBJECT_FOLDER)/api.o: $(API_FOLDER)/api.c $(HEADERS_FOLDER)/api.h
 	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) $(API_FOLDER)/api.c -c -fPIC -o $@
 
 $(OBJECT_FOLDER)/statistics.o: $(UTL_FOLDER)/statistics.c $(HEADERS_FOLDER)/statistics.h
