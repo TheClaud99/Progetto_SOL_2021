@@ -20,6 +20,8 @@
 // Se impostato, la modalità debug è attiva
 int verbose;
 
+int fd_socket;
+
 /**
  * @brief Apre connessione AF_UNIX e ripete più volte la richiesta fino ad un certo tempo.
  * 
