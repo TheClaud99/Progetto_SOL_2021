@@ -89,6 +89,6 @@ int writen(long fd, void *buf, size_t size);
 
 void write_files(char *files);
 
-int send_message(int fd, response_t response);
+int send_message(int fd, void *message);
 
 #endif /* COMMUNICATION_H_ */

@@ -107,7 +107,7 @@ void server_run() {
 
                 printf("[+] New client connected, fd: %d\n", conn_sock);
 
-                send_message(conn_sock, RESP_SUCCES);
+                send_message(conn_sock, (void*) RESP_SUCCES);
             } else if (events[i].events & EPOLLIN) {
                 /* handle EPOLLIN event */
                 for (;;) {

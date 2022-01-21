@@ -37,13 +37,14 @@ int writen(long fd, void *buf, size_t size) {
     return 1;
 }
 
-int send_message(int fd, response_t response) {
+int send_message(int fd, void *message) {
+
+    long msg_size = sizeof(*message);
 
     // mando sempre tutto il messaggio (il body sarà vuoto)
-    int ret = (int) write(fd, &response, sizeof(response));
-    int resp_size = sizeof(response);
+    long ret = write(fd, message, msg_size);
 
-    ec_cond(ret == sizeof(response), "send message");
+    ec_cond(ret == msg_size, "send message")
 
     return 0;
 }
