@@ -49,6 +49,38 @@ int send_message(int fd, void *message) {
     return 0;
 }
 
+int send_response(int fd, response_t response) {
+
+    long msg_size = sizeof(response);
+
+    // mando sempre tutto il messaggio (il body sarà vuoto)
+    long ret = write(fd, &response, msg_size);
+
+    ec_cond(ret == msg_size, "write response")
+
+    debug("Writed response %d", response)
+
+    return 0;
+}
+
+response_t receive_response(int fd) {
+
+    response_t response;
+    long msg_size = sizeof(response_t);
+
+
+    // mando sempre tutto il messaggio (il body sarà vuoto)
+    long ret = read(fd, &response, msg_size);
+
+    ec_cond(ret == msg_size, "read response")
+
+    debug("Received response %d", response)
+
+    return response;
+}
+
+
+
 void write_files(char *files) {
     while (files != NULL) {
 

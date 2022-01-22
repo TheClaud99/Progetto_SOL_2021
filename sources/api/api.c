@@ -36,8 +36,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
         }
     }
 
-    ec_meno1(n = read(fd_socket, &response, sizeof(response)), "read");
-
+    response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
         puts("Connessione avvenuta con successo");
     }

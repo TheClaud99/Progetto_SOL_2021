@@ -48,6 +48,8 @@ typedef struct configurazione {
 
 config_t config;
 
+FILE *logfile;
+
 int load_defaults();
 
 // Dato il nome del file di configurazione, carica la i parametri nella config globale

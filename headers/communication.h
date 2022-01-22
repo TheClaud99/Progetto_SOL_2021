@@ -91,4 +91,11 @@ void write_files(char *files);
 
 int send_message(int fd, void *message);
 
+
+int send_response(int fd, response_t response);
+
+response_t receive_response(int fd);
+
+int recive_message(int fd, void *buf);
+
 #endif /* COMMUNICATION_H_ */

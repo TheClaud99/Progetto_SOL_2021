@@ -32,7 +32,6 @@
 
 struct epoll_event ev, events[MAX_EVENTS];
 
-FILE *logfile;  // puntatore al file di log del client
 pthread_mutex_t lofgile_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t statitiche_mtx = PTHREAD_MUTEX_INITIALIZER;
@@ -107,7 +106,7 @@ void server_run() {
 
                 printf("[+] New client connected, fd: %d\n", conn_sock);
 
-                send_message(conn_sock, (void*) RESP_SUCCES);
+                send_response(conn_sock, RESP_SUCCES);
             } else if (events[i].events & EPOLLIN) {
                 /* handle EPOLLIN event */
                 for (;;) {
@@ -137,6 +136,8 @@ void server_run() {
 }
 
 int main(int argc, char *argv[]) {
+
+    print_debug = 1;
 
     if (argc >= 3 && strcmp(argv[1], "-conf") == 0) {
         char *config_filename = NULL;

@@ -20,7 +20,12 @@
 // Se impostato, la modalità debug è attiva
 int verbose;
 
+// Socket con il quale comunicare col server
 int fd_socket;
+
+#define O_OPEN      0
+#define O_CREATE    1
+#define O_LOCK      2
 
 /**
  * @brief Apre connessione AF_UNIX e ripete più volte la richiesta fino ad un certo tempo.

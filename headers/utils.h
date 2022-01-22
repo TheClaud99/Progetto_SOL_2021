@@ -39,8 +39,16 @@
         exit(EXIT_FAILURE); \
     }
 
-#define debug(s) \
-    if(verbose) printf("Debug: %s\n",s); fflush(stdout);
+#define debug(s, ...) \
+    if(print_debug == 1) { \
+        char debug[80] = "DEBUG: \0"; \
+        strncat(debug, s, 80); \
+        fprintf(stdout, debug, ##__VA_ARGS__); \
+        fprintf(stdout, "\n");             \
+        fflush(stdout); \
+    }
+
+int print_debug;
 
 void Pthread_mutex_lock(pthread_mutex_t *mtx);
 
