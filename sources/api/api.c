@@ -46,6 +46,10 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
 
 
 int closeConnection(const char *sockname) {
+    ec_meno1(close(fd_socket), "Close");
+
+    debug("Connessione chiusa con %s, fd: %d", sockname, fd_socket)
+
     return 0;
 }
 

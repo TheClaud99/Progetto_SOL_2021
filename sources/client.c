@@ -189,6 +189,7 @@ void set_options(int argc, char *argv[]) {
 
     openConnection(socket_file_name, 1000, get_abs_time_from_now(20));
     execute_ops(count_ops);
+    closeConnection(socket_file_name);
 }
 
 int main(int argc, char *argv[]) {

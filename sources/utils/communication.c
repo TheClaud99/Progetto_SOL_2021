@@ -40,23 +40,53 @@ int writen(long fd, void *buf, size_t size) {
 int send_message(int fd, void *message) {
 
     long msg_size = sizeof(*message);
+    long ret;
 
-    // mando sempre tutto il messaggio (il body sarà vuoto)
-    long ret = write(fd, message, msg_size);
+    ec_meno1(ret = write(fd, message, msg_size), "send message");
 
-    ec_cond(ret == msg_size, "send message")
+    warning_if(ret == msg_size, "Inviati %ld id %ld del messaggio %s", ret, msg_size, message)
 
     return 0;
 }
 
+int send_request(int fd, request_t request) {
+
+    long msg_size = sizeof(request);
+    long ret;
+
+    ec_meno1(ret = write(fd, &request, msg_size), "send request");
+
+    warning_if(ret != msg_size, "Inviati %ld di %ld bytes della richiesta %d", ret, msg_size, request.id)
+
+    debug("Sended request {id: %d, size: %d}", request.id, request.size)
+
+    return 0;
+}
+
+request_t receive_request(int fd) {
+
+    request_t request = {REQ_NULL, 0};
+    long msg_size = sizeof(request_t);
+    long ret;
+
+    ec_meno1(ret = read(fd, &request, msg_size), "receive request");
+
+    warning_if(ret != msg_size, "Ricevuti %ld di %ld bytes della richiesta", ret, msg_size)
+
+    debug("Received request {id: %d, size: %d}", request.id, request.size)
+
+    return request;
+}
+
+
 int send_response(int fd, response_t response) {
 
-    long msg_size = sizeof(response);
+    long msg_size = sizeof(response_t);
+    long ret;
 
-    // mando sempre tutto il messaggio (il body sarà vuoto)
-    long ret = write(fd, &response, msg_size);
+    ec_meno1(ret = write(fd, &response, msg_size), "send response");
 
-    ec_cond(ret == msg_size, "write response")
+    warning_if(ret != msg_size, "Inviati %ld di %ld bytes della riposta %d", ret, msg_size, response)
 
     debug("Writed response %d", response)
 
@@ -65,14 +95,13 @@ int send_response(int fd, response_t response) {
 
 response_t receive_response(int fd) {
 
-    response_t response;
+    response_t response = RESP_NULL;
     long msg_size = sizeof(response_t);
+    long ret;
 
+    ec_meno1(ret = read(fd, &response, msg_size), "receive response");
 
-    // mando sempre tutto il messaggio (il body sarà vuoto)
-    long ret = read(fd, &response, msg_size);
-
-    ec_cond(ret == msg_size, "read response")
+    warning_if(ret != msg_size, "Ricevuti %ld di %ld bytes della risposta", ret, msg_size)
 
     debug("Received response %d", response)
 

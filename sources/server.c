@@ -79,7 +79,7 @@ int create_socket(struct sockaddr_un* addr) {
  */
 void server_run() {
     int i;
-    int n;
+    int n = 0;
     int epfd;
     int nfds;
     int listen_sock;
@@ -88,6 +88,7 @@ void server_run() {
     char buf[BUF_SIZE];
     struct sockaddr_un srv_addr;
     struct sockaddr_un cli_addr;
+    request_t request;
 
     listen_sock = create_socket(&srv_addr);
 
@@ -111,7 +112,7 @@ void server_run() {
                 /* handle EPOLLIN event */
                 for (;;) {
                     memset(buf, 0, sizeof(buf));
-                    n = (int) read(events[i].data.fd, buf, sizeof(buf));
+                    request = receive_request(events[i].data.fd);
                     if (n <= 0 /* || errno == EAGAIN */ ) {
                         break;
                     } else {

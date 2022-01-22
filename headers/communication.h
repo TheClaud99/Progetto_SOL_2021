@@ -13,8 +13,13 @@
 
 #include "utils.h"
 
+/**
+ *  RICHIESTA
+**/
+
 typedef enum {
-    REQ_OPEN = 12,
+    REQ_NULL = 0, // openFile
+    REQ_OPEN = 12, // openFile
     REQ_READ = 13,
     REQ_READ_N = 14,
     REQ_WRITE = 15,
@@ -23,9 +28,20 @@ typedef enum {
     REQ_UNLOCK = 18,
     REQ_CLOSE = 19,
     REQ_DELETE = 20,
+} request_id_t;
+
+typedef struct {
+    request_id_t id; // Id della richisesta
+    size_t size;    // Dimensione dei dati che saranno inviati dopo questa richiesta
 } request_t;
 
+
+/**
+ *  RISPOSTA
+**/
+
 typedef enum {
+    RESP_NULL,
     RESP_SUCCES,
 } response_t;
 
@@ -95,6 +111,10 @@ int send_message(int fd, void *message);
 int send_response(int fd, response_t response);
 
 response_t receive_response(int fd);
+
+int send_request(int fd, request_t request);
+
+request_t receive_request(int fd);
 
 int recive_message(int fd, void *buf);
 

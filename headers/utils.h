@@ -16,6 +16,8 @@
 #define ec_meno1(c, s)      \
     if ((c) == -1)          \
     {                       \
+        fprintf(stderr, "Errore: File %s Riga %d\n", __FILE__, __LINE__); \
+        fflush(stderr);                    \
         perror(s);          \
         exit(EXIT_FAILURE); \
     }
@@ -42,8 +44,17 @@
 #define debug(s, ...) \
     if(print_debug == 1) { \
         char debug[80] = "DEBUG: \0"; \
-        strncat(debug, s, 80); \
+        strncat(debug, s, 80 - strlen(debug)); \
         fprintf(stdout, debug, ##__VA_ARGS__); \
+        fprintf(stdout, "\n");             \
+        fflush(stdout); \
+    }
+
+#define warning_if(c, s, ...) \
+    if(c) { \
+        char warning[80] = "WARNING: \0"; \
+        strncat(warning, s, 80 - strlen(warning)); \
+        fprintf(stdout, warning, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
         fflush(stdout); \
     }
