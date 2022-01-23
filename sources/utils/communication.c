@@ -26,7 +26,7 @@ int writen(long fd, void *buf, size_t size) {
     int r;
     char *bufptr = (char *) buf;
     while (left > 0) {
-        if ((r = write((int) fd, bufptr, left)) == -1) {
+        if ((r = (int) write((int) fd, bufptr, left)) == -1) {
             if (errno == EINTR) continue;
             return -1;
         }
@@ -37,17 +37,34 @@ int writen(long fd, void *buf, size_t size) {
     return 1;
 }
 
-int send_message(int fd, void *message) {
+int send_message(int fd, char *message) {
 
     long msg_size = sizeof(*message);
     long ret;
 
-    ec_meno1(ret = write(fd, message, msg_size), "send message");
+    ec_meno1(ret = writen(fd, message, msg_size), "send message");
 
     warning_if(ret == msg_size, "Inviati %ld id %ld del messaggio %s", ret, msg_size, message)
 
+    debug("Sended message %s", message)
+
     return 0;
 }
+
+int receive_message(int fd, char *message) {
+
+    long msg_size = sizeof(*message);
+    long ret;
+
+    ec_meno1(ret = writen(fd, message, msg_size), "send message");
+
+    warning_if(ret == msg_size, "Inviati %ld id %ld del messaggio %s", ret, msg_size, message)
+
+    debug("Sended message %s", message)
+
+    return 0;
+}
+
 
 int send_request(int fd, request_t request) {
 
@@ -56,24 +73,39 @@ int send_request(int fd, request_t request) {
 
     ec_meno1(ret = write(fd, &request, msg_size), "send request");
 
+    if (request.file_name_length > 0) {
+        ec_meno1(writen(fd, request.file_name, request.file_name_length), "writen")
+    }
+
     warning_if(ret != msg_size, "Inviati %ld di %ld bytes della richiesta %d", ret, msg_size, request.id)
 
-    debug("Sended request {id: %d, size: %d}", request.id, request.size)
+    if (request.file_name_length > 0) {
+        debug("Sended request {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
+    } else {
+        debug("Sended request {id: %d, size: %d}", request.id, request.size)
+    }
 
     return 0;
 }
 
 request_t receive_request(int fd) {
 
-    request_t request = {REQ_NULL, 0};
+    request_t request = {REQ_NULL, 0, 0};
     long msg_size = sizeof(request_t);
     long ret;
 
     ec_meno1(ret = read(fd, &request, msg_size), "receive request");
 
+    if (request.file_name_length > 0) {
+        ec_meno1(readn(fd, request.file_name, request.file_name_length), "writen")
+        debug("Received request {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
+    } else {
+        debug("Received request {id: %d, size: %d}", request.id, request.size)
+    }
+
+
     warning_if(ret != msg_size, "Ricevuti %ld di %ld bytes della richiesta", ret, msg_size)
 
-    debug("Received request {id: %d, size: %d}", request.id, request.size)
 
     return request;
 }
@@ -109,10 +141,8 @@ response_t receive_response(int fd) {
 }
 
 
-
 void write_files(char *files) {
     while (files != NULL) {
-
 
 
         files++;

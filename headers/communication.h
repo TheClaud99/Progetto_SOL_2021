@@ -17,6 +17,8 @@
  *  RICHIESTA
 **/
 
+#define MAX_FILE_NAME_LEN 16
+
 typedef enum {
     REQ_NULL = 0, // openFile
     REQ_OPEN = 12, // openFile
@@ -33,6 +35,8 @@ typedef enum {
 typedef struct {
     request_id_t id; // Id della richisesta
     size_t size;    // Dimensione dei dati che saranno inviati dopo questa richiesta
+    size_t file_name_length;    // Lunghezza del nome del file
+    char file_name[MAX_FILE_NAME_LEN];    // File interessato dalla richiesta
 } request_t;
 
 
@@ -42,7 +46,13 @@ typedef struct {
 
 typedef enum {
     RESP_NULL,
+    RESP_OK,
     RESP_SUCCES,
+    RESP_FILE_EXITS,
+    RESP_NO_PERMISSION,
+    RESP_ERROR,
+    RESP_FILE_EXISTS,
+    RESP_FILE_NOT_EXISTS,
 } response_t;
 
 typedef enum {
@@ -105,7 +115,7 @@ int writen(long fd, void *buf, size_t size);
 
 void write_files(char *files);
 
-int send_message(int fd, void *message);
+int send_message(int fd, char *message);
 
 
 int send_response(int fd, response_t response);

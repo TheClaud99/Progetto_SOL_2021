@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <linux/limits.h>
 #include <sched.h>
+#include <string.h>
 
 #define ec_meno1(c, s)      \
     if ((c) == -1)          \
@@ -77,5 +78,8 @@ void summstotimespec(struct timespec *ts, long msec);
 int msleep(long msec);
 
 struct timespec get_abs_time_from_now(int seconds_from_now);
+
+int get_file_name(char *file_name, char *pathname);
+
 
 #endif /* UTILS_H_ */

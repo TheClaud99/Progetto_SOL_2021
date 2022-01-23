@@ -113,13 +113,10 @@ void server_run() {
                 for (;;) {
                     memset(buf, 0, sizeof(buf));
                     request = receive_request(events[i].data.fd);
-                    if (n <= 0 /* || errno == EAGAIN */ ) {
-                        break;
-                    } else {
-                        printf("[+] data: %s\n", buf);
-                        write(events[i].data.fd, buf,
-                              strlen(buf));
-                    }
+
+                    if(request.id == REQ_NULL) break;
+
+                    send_response(events[i].data.fd, RESP_OK);
                 }
             } else {
                 printf("[+] unexpected\n");

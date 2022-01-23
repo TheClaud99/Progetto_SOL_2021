@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "communication.h"
 
 void Pthread_mutex_lock(pthread_mutex_t *mtx)
 {
@@ -90,4 +91,20 @@ struct timespec get_abs_time_from_now(int seconds_from_now) {
     time_t now = time(NULL);//Gestire errore
     abstime.tv_sec = now + seconds_from_now;
     return abstime;
+}
+
+int get_file_name(char *file_name, char *pathname) {
+    char temp[MAX_FILE_NAME_LEN], delim[] = "/";
+    char *ch = strtok(pathname, delim);
+    int file_name_len = 0;
+    while (ch != NULL) {
+        strncpy(temp, ch, MAX_FILE_NAME_LEN);
+        ch = strtok(NULL, delim);
+    }
+
+    // Lo posso fare perché strtok ritonra stringhe terminate da '\0'
+    file_name_len = (int) strlen(temp);
+    strncpy(file_name, temp, file_name_len);
+
+    return file_name_len;
 }

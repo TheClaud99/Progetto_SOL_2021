@@ -53,8 +53,80 @@ int closeConnection(const char *sockname) {
     return 0;
 }
 
+request_t prepare_request(request_id_t id, size_t size, const char *file_path) {
+    request_t request;
+    size_t file_path_len = strlen(file_path) + 1;
+
+    memset(&request, 0, sizeof(request_t));
+
+    // Faccio questa operazione per convertire file_path in una variabile non costante
+    // da essere usata nella funzione get_file_name
+    char tmp[file_path_len];
+    strncpy(tmp, file_path, file_path_len);
+
+    request.id = id;
+    request.size = size;
+    memset(request.file_name, 0, MAX_FILE_NAME_LEN);
+    request.file_name_length = get_file_name(request.file_name, tmp);
+
+    return request;
+}
+
 
 int openFile(const char *pathname, int flags) {
+
+    response_t response;
+
+    // le flag passate non sono valide (0 -> open | 1 -> open & create)
+    if (flags != O_CREATE && flags != O_LOCK) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    request_t request = prepare_request(REQ_OPEN, 0, pathname);
+
+    send_request(fd_socket, request);
+    response = receive_response(fd_socket);
+
+    switch (response) {
+        case RESP_OK: {
+            debug("Inizia trasferimento file")
+            break;
+        }
+
+        case RESP_FILE_EXITS: {
+            debug("Il file %s, esiste gia'", pathname)
+            errno = EEXIST;
+            return -1;
+            break;
+        }
+
+        case RESP_NO_PERMISSION: {
+            errno = EACCES;
+            break;
+        }
+
+        case RESP_FILE_EXISTS: {
+            errno = EEXIST;
+            break;
+        }
+
+        case RESP_FILE_NOT_EXISTS: {
+            errno = ENOENT;
+            break;
+        }
+
+        case RESP_ERROR: {
+            errno = EREMOTEIO;
+            break;
+        }
+
+        default: {
+            errno = EBADRQC;
+        }
+    }
+
+
     return 0;
 }
 

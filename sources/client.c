@@ -3,6 +3,8 @@
  * @brief   Contiene l'implementazione del client, tra cui la lettura dei parametri in ingresso ed esecuzione delle richieste verso il server.
 **/
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -38,6 +40,7 @@ typedef struct operation {
 } operation_t;
 
 operation_t ops[MAX_PARAMS];
+char removed_file_dir[PATH_MAX];
 
 /*
  * test clinet
@@ -114,6 +117,12 @@ int set_operations(int argc, char *argv[]) {
                 break;
             }
 
+            case 'D': { // Cartella dove memorizzare file rimossi dal server
+                memset(removed_file_dir, 0, PATH_MAX);
+                strcpy(removed_file_dir, optarg);
+                break;
+            }
+
             case '?': { // opzione non valida
                 printf("> Argomento %c non riconosciuto", optopt);
                 break;
@@ -131,11 +140,57 @@ int set_operations(int argc, char *argv[]) {
     return count_ops;
 }
 
+int write_or_append(char *file_path) {
+    // se il file non esiste lo creo, ci scrivo e lo chiudo
+    if (openFile(file_path, O_CREATE) == 0) {
+
+        ec_meno1(writeFile(file_path, removed_file_dir), "writeFile")
+        ec_meno1(closeFile(file_path), "closeFile")
+
+    } else if (openFile(file_path, 0) == 0) { // se il file esiste già allora lo apro, ci scrivo in append e lo chiudo
+        FILE *file;
+        ec_null(file = fopen(file_path, "rb"), "fopen")
+
+        /*void *data = cmalloc(sizeof(char) * properties.st_size);
+
+        if (fread(data, 1, properties.st_size, filePointer) == properties.st_size) { // se la lettura ha successo
+            if (appendToFile(filePath, data, properties.st_size, ejectedDest) == 0) {
+                if (closeFile(filePath) == 0) {
+                    fclose(filePointer);
+                    free(data);
+                    return 1;
+                }
+            }
+        }*/
+
+        fclose(file);
+    }
+
+    return 0;
+}
+
+int send_files(char *files) {
+    int writed_files = 0;
+    char* save_ptr;
+
+    char *file_path = strtok_r(files, ",", &save_ptr);
+    while (file_path != NULL) {
+
+        write_or_append(file_path);
+
+        file_path = strtok_r(NULL, ",", &save_ptr);
+        writed_files++;
+    }
+
+    return writed_files;
+}
+
 
 void execute_ops(int count_ops) {
     for (int i = 0; i < count_ops; i++) {
         switch (ops[i].param) {
-            case 'D': { // cartella dove salvare file espulsi dal server (INSIEME A w|W!)
+            case 'w': {
+                send_files(ops[i].arguments);
                 break;
             }
 
