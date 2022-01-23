@@ -94,7 +94,7 @@ int openFile(const char *pathname, int flags) {
             break;
         }
 
-        case RESP_FILE_EXITS: {
+        case RESP_FILE_EXISTS: {
             debug("Il file %s, esiste gia'", pathname)
             errno = EEXIST;
             return -1;
@@ -103,11 +103,6 @@ int openFile(const char *pathname, int flags) {
 
         case RESP_NO_PERMISSION: {
             errno = EACCES;
-            break;
-        }
-
-        case RESP_FILE_EXISTS: {
-            errno = EEXIST;
             break;
         }
 
