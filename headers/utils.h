@@ -60,7 +60,7 @@
         fflush(stdout); \
     }
 
-int print_debug;
+extern int print_debug;
 
 void Pthread_mutex_lock(pthread_mutex_t *mtx);
 

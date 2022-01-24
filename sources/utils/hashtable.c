@@ -6,6 +6,9 @@
 
 #include "hashtable.h"
 
+char err_ptr;
+void* HT_ERROR = &err_ptr;
+
 /* 	Internal function to calculate hash for keys.
 	It's based on the DJB algorithm from Daniel J. Bernstein.
 	The key must be ended by '\0' character.*/

@@ -43,6 +43,10 @@ volatile sig_atomic_t sigint = 0; // termina dopo la fine delle richieste client
 
 int pipesegnali[2];
 
+int print_debug = 1;
+
+config_t config;
+
 
 void *signa_handler(void *argument) {
     sigset_t pset;
@@ -313,8 +317,6 @@ void singlas_ignore() {
 int main(int argc, char *argv[]) {
 
     pthread_t singnal_handler_thread;
-
-    print_debug = 1;
 
     if (argc >= 3 && strcmp(argv[1], "-conf") == 0) {
         char *config_filename = NULL;

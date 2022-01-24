@@ -42,6 +42,8 @@ typedef struct operation {
 operation_t ops[MAX_PARAMS];
 char removed_file_dir[PATH_MAX];
 
+int print_debug = 0;
+
 /*
  * test clinet
  */
@@ -99,7 +101,6 @@ static void help(void) {
 
 int set_operations(int argc, char *argv[]) {
     int opt, count_ops = 0;
-    print_debug = 0;
 
     while ((opt = getopt(argc, argv, ":hf:w:W:D:r:R:d:t:l:u:c:p")) != -1) {
         switch (opt) {

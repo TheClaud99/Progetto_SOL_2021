@@ -36,8 +36,8 @@ typedef struct {
 // Inititalize hashtable iterator on hashtable 'ht'
 #define HT_ITERATOR(ht) {ht, 0, ht->table[0]}
 
-char err_ptr;
-void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
+extern char err_ptr;
+extern void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
 
 /* 	Internal funcion to calculate hash for keys.
 	It's based on the DJB algorithm from Daniel J. Bernstein.

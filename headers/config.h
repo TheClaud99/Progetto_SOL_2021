@@ -43,9 +43,9 @@ typedef struct configurazione {
     char stats_file_name[PATH_MAX];*/
 } config_t;
 
-config_t config;
+extern config_t config;
 
-FILE *logfile;
+extern FILE *logfile;
 
 int load_defaults();
 
