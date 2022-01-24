@@ -81,5 +81,6 @@ struct timespec get_abs_time_from_now(int seconds_from_now);
 
 int get_file_name(char *file_name, const char *pathname);
 
+void* cmalloc(size_t size);
 
 #endif /* UTILS_H_ */

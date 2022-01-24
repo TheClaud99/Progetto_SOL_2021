@@ -20,7 +20,6 @@
 
 
 #include "config.h"
-#include "file.h"
 #include "statistics.h"
 #include "utils.h"
 #include "communication.h"
@@ -155,6 +154,59 @@ int create_socket(struct sockaddr_un *addr) {
     return listen_sock;
 }
 
+void handle_request(int client_fd, request_t request) {
+    switch (request.id) {
+        case REQ_OPEN: {
+
+            file_data_t *f = get_file(request.file_name);
+
+            if (request.flags & O_CREATE) {
+                if(f != NULL) {
+                    send_response(client_fd, RESP_FILE_EXISTS);
+                    return;
+                }
+
+                f = add_file(request.file_name, client_fd);
+
+                debug("Creato file %s", request.file_name)
+            }
+
+            if(f == NULL) {
+                send_response(client_fd, RESP_FILE_NOT_EXISTS);
+                return;
+            }
+
+            if (request.flags & O_LOCK) {
+                f->locked = 1;
+            }
+
+            f->opened = 1;
+            send_response(client_fd, RESP_SUCCES);
+
+            break;
+        }
+
+        case REQ_NULL:
+            break;
+        case REQ_READ:
+            break;
+        case REQ_READ_N:
+            break;
+        case REQ_WRITE:
+            break;
+        case REQ_APPEND:
+            break;
+        case REQ_LOCK:
+            break;
+        case REQ_UNLOCK:
+            break;
+        case REQ_CLOSE:
+            break;
+        case REQ_DELETE:
+            break;
+    }
+}
+
 /*
  * epoll echo server
  */
@@ -208,7 +260,9 @@ void server_run() {
 
                     if (request.id == REQ_NULL) break;
 
-                    send_response(events[i].data.fd, RESP_OK);
+                    handle_request(events[i].data.fd, request);
+
+//                    send_response(events[i].data.fd, RESP_OK);
                 }
             } else {
                 printf("[+] unexpected\n");

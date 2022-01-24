@@ -4,7 +4,6 @@
 **/
 
 #include "api.h"
-#include "communication.h"
 
 static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
 
@@ -64,7 +63,7 @@ int openFile(const char *pathname, int flags) {
         return -1;
     }
 
-    request_t request = prepare_request(REQ_OPEN, 0, pathname);
+    request_t request = prepare_request(REQ_OPEN, 0, pathname, flags);
 
     send_request(fd_socket, request);
     response = receive_response(fd_socket);

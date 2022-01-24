@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "communication.h"
 
 void Pthread_mutex_lock(pthread_mutex_t *mtx)
 {
@@ -96,4 +95,16 @@ struct timespec get_abs_time_from_now(int seconds_from_now) {
 int get_file_name(char *file_name, const char *pathname) {
     strcpy(file_name, basename(pathname));
     return (int)strlen(file_name);
+}
+
+void* cmalloc(size_t size) {
+    void *ret = malloc(size);
+
+    if(ret == NULL) {
+        perror("Errore allocazione memoria");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(ret, 0, size);
+    return ret;
 }

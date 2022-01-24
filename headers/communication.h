@@ -32,15 +32,22 @@ typedef enum {
     REQ_UNLOCK = 18,
     REQ_CLOSE = 19,
     REQ_DELETE = 20,
+
+    REQ_SEND_FILE, // Richiseta speciale che fa il server al client per espellere file
 } request_id_t;
 
 typedef struct {
     request_id_t id; // Id della richisesta
+    int flags; // Id della richisesta
     size_t size;    // Dimensione dei dati che saranno inviati dopo questa richiesta
     size_t file_name_length;    // Lunghezza del nome del file
     char file_name[MAX_FILE_NAME_LEN];    // File interessato dalla richiesta
 } request_t;
 
+
+#define O_OPEN      0
+#define O_CREATE    1
+#define O_LOCK      2
 
 /**
  *  RISPOSTA
@@ -55,6 +62,7 @@ typedef enum {
     RESP_ERROR,
     RESP_FILE_EXISTS,
     RESP_FILE_NOT_EXISTS,
+    RESP_FULL
 } response_t;
 
 typedef enum {

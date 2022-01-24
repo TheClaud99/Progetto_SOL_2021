@@ -69,7 +69,7 @@ int receive_message(int fd, char *message) {
     long msg_size = sizeof(*message);
     long ret;
 
-    ec_meno1(ret = writen(fd, message, msg_size), "send message");
+    ec_meno1(ret = readn(fd, message, msg_size), "send message");
 
     warning_if(ret == msg_size, "Inviati %ld id %ld del messaggio %s", ret, msg_size, message)
 

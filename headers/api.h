@@ -3,7 +3,9 @@
  * @brief   Contiene l'header dei metodi utilizzati dal client per comunicare col server.
 **/
 
-#define _POSIX_C_SOURCE 200809L
+
+#define __USE_GNU
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,20 +14,16 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <libgen.h>
 #include <linux/limits.h>
 #include <time.h>
 #include "utils.h"
+#include "communication.h"
 
 // Se impostato, la modalità debug è attiva
 int verbose;
 
 // Socket con il quale comunicare col server
 int fd_socket;
-
-#define O_OPEN      0
-#define O_CREATE    1
-#define O_LOCK      2
 
 /**
  * @brief Apre connessione AF_UNIX e ripete più volte la richiesta fino ad un certo tempo.
