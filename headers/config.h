@@ -17,9 +17,6 @@
 #include "utils.h"
 #include "ini.h"
 
-#define KEY "efhiauefrwhwafghaw2131guys" // chiave perché la configurazione venga letta dal server, è una specie di password
-
-#define EXPECTED_CONF_VARS 8 // va considerata anche la chiave del server, quindi è +1
 
 /**
     @brief  Contiene l'insieme di errori che possono verificarsi durante la lettura del config.

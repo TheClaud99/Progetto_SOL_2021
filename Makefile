@@ -44,7 +44,7 @@ client: libs/libcomm.so libs/libapi.so
 libs/libcomm.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/utils.o
 	$(CC) -shared -o $(LIB_FOLDER)/libcomm.so $^
 
-libs/libserver.so: $(OBJECT_FOLDER)/config.o $(OBJECT_FOLDER)/statistics.o $(OBJECT_FOLDER)/ini.o $(OBJECT_FOLDER)/utils.o $(OBJECT_FOLDER)/file_manager.o
+libs/libserver.so: $(OBJECT_FOLDER)/config.o $(OBJECT_FOLDER)/statistics.o $(OBJECT_FOLDER)/ini.o $(OBJECT_FOLDER)/utils.o $(OBJECT_FOLDER)/file_manager.o $(OBJECT_FOLDER)/hashtable.o
 	$(CC) -shared -o $(LIB_FOLDER)/libserver.so $^
 
 libs/libapi.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/api.o $(OBJECT_FOLDER)/utils.o
@@ -73,6 +73,8 @@ $(OBJECT_FOLDER)/ini.o: $(UTL_FOLDER)/ini.c $(HEADERS_FOLDER)/ini.h
 $(OBJECT_FOLDER)/file_manager.o: $(UTL_FOLDER)/file_manager.c $(HEADERS_FOLDER)/file_manager.h
 	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) $(UTL_FOLDER)/file_manager.c -c -fPIC -o $@
 
+$(OBJECT_FOLDER)/hashtable.o: $(UTL_FOLDER)/hashtable.c $(HEADERS_FOLDER)/hashtable.h
+	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) $(UTL_FOLDER)/hashtable.c -c -fPIC -o $@
 
 # ------------- TARGET PHONY --------------
 clean:
