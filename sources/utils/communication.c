@@ -37,6 +37,19 @@ int writen(long fd, void *buf, size_t size) {
     return 1;
 }
 
+request_t prepare_request(request_id_t id, size_t size, const char *file_path, int flags) {
+    request_t request;
+    memset(&request, 0, sizeof(request_t));
+
+    request.id = id;
+    request.size = size;
+    memset(request.file_name, 0, MAX_FILE_NAME_LEN);
+    request.file_name_length = get_file_name(request.file_name, file_path);
+    request.flags = flags;
+
+    return request;
+}
+
 int send_message(int fd, char *message) {
 
     long msg_size = sizeof(*message);

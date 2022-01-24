@@ -6,6 +6,8 @@
 #ifndef COMMUNICATION_H_
 #define COMMUNICATION_H_
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -20,7 +22,7 @@
 #define MAX_FILE_NAME_LEN 16
 
 typedef enum {
-    REQ_NULL = 0, // openFile
+    REQ_NULL = 0,
     REQ_OPEN = 12, // openFile
     REQ_READ = 13,
     REQ_READ_N = 14,
@@ -113,10 +115,13 @@ int readn(long fd, void *buf, size_t size);
 
 int writen(long fd, void *buf, size_t size);
 
+request_t prepare_request(request_id_t id, size_t size, const char *file_path, int flags);
+
 void write_files(char *files);
 
 int send_message(int fd, char *message);
 
+int recive_message(int fd, void *buf);
 
 int send_response(int fd, response_t response);
 
@@ -125,7 +130,5 @@ response_t receive_response(int fd);
 int send_request(int fd, request_t request);
 
 request_t receive_request(int fd);
-
-int recive_message(int fd, void *buf);
 
 #endif /* COMMUNICATION_H_ */
