@@ -50,30 +50,29 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
     return request;
 }
 
-int send_message(int fd, char *message) {
+int send_message(int fd, char *message, size_t size) {
 
-    long msg_size = sizeof(*message);
     long ret;
 
-    ec_meno1(ret = writen(fd, message, msg_size), "send message");
+    ec_meno1(ret = writen(fd, message, size), "send message");
 
-    warning_if(ret == msg_size, "Inviati %ld id %ld del messaggio %s", ret, msg_size, message)
+    warning_if(ret == size, "Inviati %ld id %ld del messaggio %s", ret, size, message)
 
-    debug("Sended message %s", message)
+    // todo capire perché fa un memory leak
+    // debug("Sended message %s", message)
 
     return 0;
 }
 
-int receive_message(int fd, char *message) {
+int receive_message(int fd, char *message, size_t size) {
 
-    long msg_size = sizeof(*message);
     long ret;
 
-    ec_meno1(ret = readn(fd, message, msg_size), "send message");
+    ec_meno1(ret = readn(fd, message, size), "receive message");
 
-    warning_if(ret == msg_size, "Inviati %ld id %ld del messaggio %s", ret, msg_size, message)
+    warning_if(ret == size, "Inviati %ld id %ld del messaggio %s", ret, size, message)
 
-    debug("Sended message %s", message)
+    debug("Received message %s", message)
 
     return 0;
 }

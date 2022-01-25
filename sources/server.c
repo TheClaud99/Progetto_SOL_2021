@@ -43,9 +43,10 @@ volatile sig_atomic_t sigint = 0; // termina dopo la fine delle richieste client
 
 int pipesegnali[2];
 
+// Variabili external
 int print_debug = 1;
-
 config_t config;
+stats_t stats = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
 void *signa_handler(void *argument) {
@@ -196,7 +197,17 @@ void handle_request(int client_fd, request_t request) {
             break;
         case REQ_READ_N:
             break;
-        case REQ_WRITE:
+        case REQ_WRITE: {
+            if(check_memory_exced(request.size)) { // Devo liberarmi di qualche file
+                send_response(client_fd, RESP_FULL);
+            } else {
+                send_response(client_fd, RESP_OK);
+            }
+            char *buf = cmalloc(request.size);
+            receive_message(client_fd, buf, request.size);
+            write_file(request.file_name, buf, request.size);
+            free(buf);
+        }
             break;
         case REQ_APPEND:
             break;
@@ -208,6 +219,8 @@ void handle_request(int client_fd, request_t request) {
             break;
         case REQ_DELETE:
             break;
+        case REQ_SEND_FILE:
+            break;
     }
 }
 
@@ -216,7 +229,6 @@ void handle_request(int client_fd, request_t request) {
  */
 void server_run() {
     int i;
-    int n = 0;
     int epfd;
     int nfds;
     int listen_sock;

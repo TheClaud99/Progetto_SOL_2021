@@ -1,7 +1,6 @@
 /**
  * @file    statistics.h
  * @brief   Contiene l'implementazione della struct statistics per le statistiche del server.
- * @author  Leonardo Pantani
 **/
 
 #ifndef STATISTICS_H_
@@ -14,13 +13,13 @@
 /**
  * @brief   Struttura che definisce l'insieme di statistiche salvate dal server.
 */
-typedef struct statistics {
+typedef struct {
     int n_read;
     int n_write;
-    int n_lock; // non usata
+    int n_lock;
     int n_open;
     int n_opencreate;
-    int n_unlock; // non usata
+    int n_unlock;
     int n_delete;
     int n_close;
 
@@ -39,8 +38,9 @@ typedef struct statistics {
     int bytes_written;
 
     int *workerRequests; // contiene l'array contenente le richieste servite da ogni worker
-} Statistics;
+} stats_t;
 
-Statistics stats = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+extern stats_t stats;
+extern pthread_mutex_t stats_mtx;
 
 #endif /* STATISTICS_H_ */

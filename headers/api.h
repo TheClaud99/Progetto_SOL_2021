@@ -4,7 +4,7 @@
 **/
 
 
-#define __USE_GNU
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>

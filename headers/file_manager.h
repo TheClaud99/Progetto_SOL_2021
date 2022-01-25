@@ -7,7 +7,7 @@
 #ifndef FILE_MANAGER_H_
 #define FILE_MANAGER_H_
 
-#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "hashtable.h"
+#include "statistics.h"
 
 
 typedef struct {
@@ -35,7 +36,7 @@ typedef struct {
     int opened;
 } file_data_t;
 
-hashtable_t *ht;
+extern hashtable_t *ht;
 
 void init_file_manager();
 
@@ -43,6 +44,10 @@ file_data_t* add_file(char* file_name, int author);
 
 file_data_t* get_file(char *file_name);
 
+void write_file(char *file_name, char *data, size_t size);
+
 void close_file_manager();
+
+int check_memory_exced(size_t data_to_insert);
 
 #endif /* FILE_MANAGER_H_ */

@@ -3,6 +3,7 @@
  * @brief   Implementazione delle funzioni dell'api disponibili al client
 **/
 
+#include <string.h>
 #include "api.h"
 
 static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
@@ -16,6 +17,33 @@ static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
     addr->sun_family = AF_UNIX;
     strcpy(addr->sun_path, sockname);
 
+}
+
+// Aspetta un file dal socket e lo salva nella directory specificata
+int read_and_save(const char *dirname, const char *file_name, size_t file_size) {
+    FILE* f;
+    char pathname[PATH_MAX];
+    char *buf = cmalloc(file_size);
+
+    // Aspetto che il server mandi i dati del file
+    receive_message(fd_socket, buf, file_size);
+
+    // Preparo il file in cui scrivere
+    strcpy(pathname, dirname);
+    if(pathname[PATH_MAX - 1] != '/') {
+        strcat(pathname, "/");
+    }
+    strcat(pathname, file_name);
+    ec_null(f = fopen(pathname, "wb"), "fopen read and save");
+
+    // Scrivo nel file
+    fwrite(buf, 1, file_size, f);
+    printf("Ricevuto file remoto '%s' (%ld bytes) salvato in '%s'", file_name, file_size, pathname);
+
+    fclose(f);
+    free(buf);
+
+    return 0;
 }
 
 int openConnection(const char *sockname, int msec, const struct timespec abstime) {
@@ -117,6 +145,44 @@ int readNFiles(int N, const char *dirname) {
 
 
 int writeFile(const char *pathname, const char *dirname) {
+
+    request_t request;
+    response_t response;
+    FILE* file;
+    struct stat file_stat; // Informazioni sul file
+
+    // Apro il file e prendo le informazioni su di esso
+    ec_null(file = fopen(pathname, "rb"), "writeFile fopen")
+    ec_meno1(stat(pathname, &file_stat), "writeFile stat")
+
+    // Leggo il contenuto del file in un buffer temporaneo
+    char *buffer = cmalloc(file_stat.st_size);
+    ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
+    fclose(file);
+
+    // Mando la richiesta per porter scrivere il file
+    request = prepare_request(REQ_WRITE, file_stat.st_size, pathname, 0);
+    send_request(fd_socket, request);
+
+    // Aspetto una risposta dal server
+    response = receive_response(fd_socket);
+
+    if(response == RESP_FULL) { // Il server è pieno e deve espellere dei file
+        request_t server_request;
+        server_request = receive_request(fd_socket);
+        while(server_request.id == REQ_SEND_FILE) {
+            read_and_save(dirname, server_request.file_name, server_request.size);
+            send_response(fd_socket, RESP_OK);
+            server_request = receive_request(fd_socket);
+        }
+    }
+
+    if(response == RESP_OK) { // Il server ha dato l'ok
+        send_message(fd_socket, buffer, file_stat.st_size);
+    }
+
+    free(buffer);
+
     return 0;
 }
 
