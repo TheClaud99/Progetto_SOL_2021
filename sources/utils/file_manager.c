@@ -38,8 +38,19 @@ void write_file(char *file_name, char *data, size_t size) {
 }
 
 void close_file_manager() {
-    // todo liberare memeoria f->file per ogni elemento
-    ht_clear(ht, 1);
+    hash_elem_it it = HT_ITERATOR(ht);
+    char* k = ht_iterate_keys(&it);
+    file_data_t *f;
+
+    // Faccio la free di tutti i file
+    while(k != NULL)
+    {
+        f = ht_remove(ht, k);
+        free(f->file);
+        free(f);
+        k = ht_iterate_keys(&it);
+    }
+
     ht_destroy(ht);
 }
 
