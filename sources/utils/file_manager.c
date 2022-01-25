@@ -33,7 +33,7 @@ int lockfile(char *file_name) {
 void write_file(char *file_name, char *data, size_t size) {
     file_data_t *f = get_file(file_name);
     f->file = cmalloc(size);
-    strcpy(f->file, data);
+    strncpy(f->file, data, size);
     f->length = size;
 }
 

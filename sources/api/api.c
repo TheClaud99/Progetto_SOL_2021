@@ -149,19 +149,22 @@ int writeFile(const char *pathname, const char *dirname) {
     request_t request;
     response_t response;
     FILE* file;
+    size_t size;
     struct stat file_stat; // Informazioni sul file
 
     // Apro il file e prendo le informazioni su di esso
     ec_null(file = fopen(pathname, "rb"), "writeFile fopen")
     ec_meno1(stat(pathname, &file_stat), "writeFile stat")
 
+    size = file_stat.st_size + 1; // Imposto la dimensione di un byte in più per il carattere di terminazinoe '\0'
+
     // Leggo il contenuto del file in un buffer temporaneo
-    char *buffer = cmalloc(file_stat.st_size);
+    char *buffer = cmalloc(size);
     ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
     fclose(file);
 
     // Mando la richiesta per porter scrivere il file
-    request = prepare_request(REQ_WRITE, file_stat.st_size, pathname, 0);
+    request = prepare_request(REQ_WRITE, size, pathname, 0);
     send_request(fd_socket, request);
 
     // Aspetto una risposta dal server
@@ -178,7 +181,7 @@ int writeFile(const char *pathname, const char *dirname) {
     }
 
     if(response == RESP_OK) { // Il server ha dato l'ok
-        send_message(fd_socket, buffer, file_stat.st_size);
+        send_message(fd_socket, buffer, size);
     }
 
     free(buffer);

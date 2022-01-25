@@ -56,10 +56,7 @@ int send_message(int fd, char *message, size_t size) {
 
     ec_meno1(ret = writen(fd, message, size), "send message");
 
-    warning_if(ret != size, "Inviati %ld di %ld del messaggio %s", ret, size, message)
-
-    // todo capire perché fa un memory leak
-    // debug("Sended message %s", message)
+    debug("Sended message %s", message)
 
     return 0;
 }
@@ -69,8 +66,6 @@ int receive_message(int fd, char *message, size_t size) {
     long ret;
 
     ec_meno1(ret = readn(fd, message, size), "receive message");
-
-    warning_if(ret != size, "Ricevuti %ld di %ld del messaggio %s", ret, size, message)
 
     debug("Received message %s", message)
 
