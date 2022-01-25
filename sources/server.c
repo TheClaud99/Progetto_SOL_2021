@@ -166,6 +166,12 @@ void handle_request(int client_fd, request_t request) {
             file_data_t *f = get_file(request.file_name);
 
             if (request.flags & O_CREATE) {
+
+                if(check_memory_exced(request.size, CHECK_NFILES_EXCEDED)) { // Devo liberarmi di qualche file
+                    send_response(client_fd, RESP_FULL);
+                    // todo implementare espulsione file
+                }
+
                 if(f != NULL) {
                     send_response(client_fd, RESP_FILE_EXISTS);
                     return;
@@ -198,8 +204,9 @@ void handle_request(int client_fd, request_t request) {
         case REQ_READ_N:
             break;
         case REQ_WRITE: {
-            if(check_memory_exced(request.size)) { // Devo liberarmi di qualche file
+            if(check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
+                // todo implementare espulsione file
             } else {
                 send_response(client_fd, RESP_OK);
             }
@@ -207,15 +214,31 @@ void handle_request(int client_fd, request_t request) {
             receive_message(client_fd, buf, request.size);
             write_file(request.file_name, buf, request.size);
             free(buf);
+            break;
         }
+        case REQ_APPEND: {
+
+            if(check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
+                send_response(client_fd, RESP_FULL);
+                // todo implementare espulsione file
+            } else {
+                send_response(client_fd, RESP_OK);
+            }
+
+            char *buf = cmalloc(request.size);
+            receive_message(client_fd, buf, request.size);
+            append_to_file(request.file_name, buf, request.size);
+            free(buf);
             break;
-        case REQ_APPEND:
-            break;
+        }
+
         case REQ_LOCK:
             break;
         case REQ_UNLOCK:
             break;
         case REQ_CLOSE:
+            close_file(request.file_name);
+            send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_DELETE:
             break;

@@ -21,7 +21,7 @@ static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
 
 // Aspetta un file dal socket e lo salva nella directory specificata
 int read_and_save(const char *dirname, const char *file_name, size_t file_size) {
-    FILE* f;
+    FILE *f;
     char pathname[PATH_MAX];
     char *buf = cmalloc(file_size);
 
@@ -30,7 +30,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
 
     // Preparo il file in cui scrivere
     strcpy(pathname, dirname);
-    if(pathname[PATH_MAX - 1] != '/') {
+    if (pathname[PATH_MAX - 1] != '/') {
         strcat(pathname, "/");
     }
     strcat(pathname, file_name);
@@ -44,6 +44,48 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     free(buf);
 
     return 0;
+}
+
+void receive_rejected_files(const char *dirname) {
+    request_t server_request;
+    server_request = receive_request(fd_socket);
+    while (server_request.id == REQ_SEND_FILE) {
+        read_and_save(dirname, server_request.file_name, server_request.size);
+        send_response(fd_socket, RESP_OK);
+        server_request = receive_request(fd_socket);
+    }
+}
+
+void set_errno(response_t response) {
+    switch (response) {
+        case RESP_OK: {
+            break;
+        }
+
+        case RESP_FILE_EXISTS: {
+            errno = EEXIST;
+            break;
+        }
+
+        case RESP_NO_PERMISSION: {
+            errno = EACCES;
+            break;
+        }
+
+        case RESP_FILE_NOT_EXISTS: {
+            errno = ENOENT;
+            break;
+        }
+
+        case RESP_ERROR: {
+            errno = EREMOTEIO;
+            break;
+        }
+
+        default: {
+            errno = EBADRQC;
+        }
+    }
 }
 
 int openConnection(const char *sockname, int msec, const struct timespec abstime) {
@@ -84,53 +126,18 @@ int closeConnection(const char *sockname) {
 int openFile(const char *pathname, int flags) {
 
     response_t response;
-
-    // le flag passate non sono valide (0 -> open | 1 -> open & create)
-    if (flags != O_CREATE && flags != O_LOCK) {
-        errno = EINVAL;
-        return -1;
-    }
-
     request_t request = prepare_request(REQ_OPEN, 0, pathname, flags);
 
     send_request(fd_socket, request);
     response = receive_response(fd_socket);
 
-    switch (response) {
-        case RESP_OK: {
-            debug("Inizia trasferimento file")
-            break;
-        }
-
-        case RESP_FILE_EXISTS: {
-            debug("Il file %s, esiste gia'", pathname)
-            errno = EEXIST;
-            return -1;
-            break;
-        }
-
-        case RESP_NO_PERMISSION: {
-            errno = EACCES;
-            break;
-        }
-
-        case RESP_FILE_NOT_EXISTS: {
-            errno = ENOENT;
-            break;
-        }
-
-        case RESP_ERROR: {
-            errno = EREMOTEIO;
-            break;
-        }
-
-        default: {
-            errno = EBADRQC;
-        }
+    if(response == RESP_SUCCES) {
+        return 0;
     }
 
 
-    return 0;
+    set_errno(response);
+    return -1;
 }
 
 
@@ -148,7 +155,7 @@ int writeFile(const char *pathname, const char *dirname) {
 
     request_t request;
     response_t response;
-    FILE* file;
+    FILE *file;
     size_t size;
     struct stat file_stat; // Informazioni sul file
 
@@ -170,46 +177,106 @@ int writeFile(const char *pathname, const char *dirname) {
     // Aspetto una risposta dal server
     response = receive_response(fd_socket);
 
-    if(response == RESP_FULL) { // Il server è pieno e deve espellere dei file
-        request_t server_request;
-        server_request = receive_request(fd_socket);
-        while(server_request.id == REQ_SEND_FILE) {
-            read_and_save(dirname, server_request.file_name, server_request.size);
-            send_response(fd_socket, RESP_OK);
-            server_request = receive_request(fd_socket);
-        }
+    if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
+        receive_rejected_files(dirname);
+        response = RESP_OK;
     }
 
-    if(response == RESP_OK) { // Il server ha dato l'ok
+    if (response == RESP_OK) { // Il server ha dato l'ok
         send_message(fd_socket, buffer, size);
+        free(buffer);
+        return 0;
     }
 
     free(buffer);
+    set_errno(response);
 
-    return 0;
+    return -1;
 }
 
 
 int appendToFile(const char *pathname, void *buf, size_t size, const char *dirname) {
-    return 0;
+    response_t response;
+    request_t request = prepare_request(REQ_APPEND, size, pathname, 0);
+    send_request(fd_socket, request);
+
+    response = receive_response(fd_socket);
+
+    if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
+        receive_rejected_files(dirname);
+        response = RESP_OK;
+    }
+
+    if (response == RESP_OK) {
+        send_message(fd_socket, buf, size);
+        return 0;
+    }
+
+    set_errno(response);
+
+    return -1;
 }
 
 
 int lockFile(const char *pathname) {
-    return 0;
+    response_t response;
+    request_t request = prepare_request(REQ_LOCK, 0, pathname, 0);
+    send_request(fd_socket, request);
+
+    response = receive_response(fd_socket);
+    if (response == RESP_SUCCES) {
+        return 0;
+    }
+
+    set_errno(response);
+
+    return -1;
 }
 
 
 int unlockFile(const char *pathname) {
-    return 0;
+    response_t response;
+    request_t request = prepare_request(REQ_UNLOCK, 0, pathname, 0);
+    send_request(fd_socket, request);
+
+    response = receive_response(fd_socket);
+    if (response == RESP_SUCCES) {
+        return 0;
+    }
+
+    set_errno(response);
+
+    return -1;
 }
 
 
 int closeFile(const char *pathname) {
-    return 0;
+    response_t response;
+    request_t request = prepare_request(REQ_CLOSE, 0, pathname, 0);
+    send_request(fd_socket, request);
+
+    response = receive_response(fd_socket);
+    if (response == RESP_SUCCES) {
+        return 0;
+    }
+
+    set_errno(response);
+
+    return -1;
 }
 
 
 int removeFile(const char *pathname) {
-    return 0;
+    response_t response;
+    request_t request = prepare_request(REQ_DELETE, 0, pathname, 0);
+    send_request(fd_socket, request);
+
+    response = receive_response(fd_socket);
+    if (response == RESP_SUCCES) {
+        return 0;
+    }
+
+    set_errno(response);
+
+    return -1;
 }

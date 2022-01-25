@@ -30,11 +30,43 @@ int lockfile(char *file_name) {
     return 0;
 }
 
+int unlockfile(char *file_name) {
+    file_data_t *f = get_file(file_name);
+
+    if(f == NULL) return -1;
+
+    f->locked = 0;
+    return 0;
+}
+
 void write_file(char *file_name, char *data, size_t size) {
     file_data_t *f = get_file(file_name);
     f->file = cmalloc(size);
     strncpy(f->file, data, size);
     f->length = size;
+}
+
+void append_to_file(char *file_name, char *data, size_t size) {
+    file_data_t *f = get_file(file_name);
+    size_t total_size = f->length + size;
+    char *new_file = cmalloc(total_size);
+
+    strncpy(new_file, f->file, f->length);
+    strncat(new_file, data, size);
+
+    free(f->file);
+
+    f->file = new_file;
+    f->length = total_size;
+}
+
+int close_file(char *file_name) {
+    file_data_t *f = get_file(file_name);
+
+    if(f == NULL) return -1;
+
+    f->opened = 0;
+    return 0;
 }
 
 void close_file_manager() {
@@ -54,13 +86,13 @@ void close_file_manager() {
     ht_destroy(ht);
 }
 
-int check_memory_exced(size_t data_to_insert) {
+int check_memory_exced(size_t data_to_insert, int flags) {
     Pthread_mutex_lock(&stats_mtx);
 
-    if(stats.current_bytes_used + data_to_insert > config.max_memory_size)
+    if(flags & CHECK_MEMORY_EXCEDED && stats.current_bytes_used + data_to_insert > config.max_memory_size)
         return 1;
 
-    if(stats.current_files_saved > config.max_files) {
+    if(flags & CHECK_NFILES_EXCEDED && stats.current_files_saved >= config.max_files) {
         return 1;
     }
 

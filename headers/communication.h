@@ -57,7 +57,6 @@ typedef enum {
     RESP_NULL,
     RESP_OK,
     RESP_SUCCES,
-    RESP_FILE_EXITS,
     RESP_NO_PERMISSION,
     RESP_ERROR,
     RESP_FILE_EXISTS,

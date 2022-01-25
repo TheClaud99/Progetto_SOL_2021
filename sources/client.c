@@ -150,21 +150,25 @@ int write_or_append(char *file_path) {
 
     } else if (openFile(file_path, 0) == 0) { // se il file esiste già allora lo apro, ci scrivo in append e lo chiudo
         FILE *file;
-        ec_null(file = fopen(file_path, "rb"), "fopen")
+        size_t size;
+        struct stat file_stat; // Informazioni sul file
 
-        /*void *data = cmalloc(sizeof(char) * properties.st_size);
+        // Apro il file e prendo le informazioni su di esso
+        ec_null(file = fopen(file_path, "rb"), "write_or_append fopen")
+        ec_meno1(stat(file_path, &file_stat), "write_or_append stat")
 
-        if (fread(data, 1, properties.st_size, filePointer) == properties.st_size) { // se la lettura ha successo
-            if (appendToFile(filePath, data, properties.st_size, ejectedDest) == 0) {
-                if (closeFile(filePath) == 0) {
-                    fclose(filePointer);
-                    free(data);
-                    return 1;
-                }
-            }
-        }*/
+        size = file_stat.st_size + 1; // Imposto la dimensione di un byte in più per il carattere di terminazinoe '\0'
 
+        // Leggo il contenuto del file in un buffer temporaneo
+        char *buffer = cmalloc(size);
+        ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
         fclose(file);
+
+        ec_meno1(appendToFile(file_path, buffer, size, removed_file_dir), "appendToFile");
+
+        free(buffer);
+
+        ec_meno1(closeFile(file_path), "closeFile");
     }
 
     return 0;
@@ -172,7 +176,7 @@ int write_or_append(char *file_path) {
 
 int send_files(char *files) {
     int writed_files = 0;
-    char* save_ptr;
+    char *save_ptr;
 
     char *file_path = strtok_r(files, ",", &save_ptr);
     while (file_path != NULL) {
