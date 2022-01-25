@@ -14,7 +14,7 @@ int load_defaults() {
 // Dato il nome del file di configurazione, carica la i parametri nella config globale
 int load_config(char *filename) {
 
-    ec_meno1(access(config.socket_file_name, F_OK), "caricamento file di configurazione")
+    ec_meno1(access(filename, F_OK), "caricamento file di configurazione")
 
     ini_t *config_file = ini_load(filename);
 
