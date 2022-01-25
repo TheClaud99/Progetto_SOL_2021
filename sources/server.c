@@ -167,12 +167,12 @@ void handle_request(int client_fd, request_t request) {
 
             if (request.flags & O_CREATE) {
 
-                if(check_memory_exced(request.size, CHECK_NFILES_EXCEDED)) { // Devo liberarmi di qualche file
+                if (check_memory_exced(request.size, CHECK_NFILES_EXCEDED)) { // Devo liberarmi di qualche file
                     send_response(client_fd, RESP_FULL);
                     // todo implementare espulsione file
                 }
 
-                if(f != NULL) {
+                if (f != NULL) {
                     send_response(client_fd, RESP_FILE_EXISTS);
                     return;
                 }
@@ -182,7 +182,7 @@ void handle_request(int client_fd, request_t request) {
                 debug("Creato file %s", request.file_name)
             }
 
-            if(f == NULL) {
+            if (f == NULL) {
                 send_response(client_fd, RESP_FILE_NOT_EXISTS);
                 return;
             }
@@ -204,7 +204,7 @@ void handle_request(int client_fd, request_t request) {
         case REQ_READ_N:
             break;
         case REQ_WRITE: {
-            if(check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
+            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
                 // todo implementare espulsione file
             } else {
@@ -218,7 +218,7 @@ void handle_request(int client_fd, request_t request) {
         }
         case REQ_APPEND: {
 
-            if(check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
+            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
                 // todo implementare espulsione file
             } else {
@@ -288,27 +288,26 @@ void server_run() {
 
                 send_response(conn_sock, RESP_SUCCES);
             } else if (events[i].data.fd == pipesegnali[0]) { // è arrivato un segnale dalla pipe
-                read(events[i].data.fd, &signum, sizeof (int));
+                read(events[i].data.fd, &signum, sizeof(int));
                 debug("Arrvivato segnale %d da pipe", signum)
                 break;
             } else if (events[i].events & EPOLLIN) {
                 /* handle EPOLLIN event */
-                for (;;) {
-                    memset(buf, 0, sizeof(buf));
-                    request = receive_request(events[i].data.fd);
+                memset(buf, 0, sizeof(buf));
+                request = receive_request(events[i].data.fd);
 
-                    if (request.id == REQ_NULL) break;
-
+                if (request.id != REQ_NULL) {
                     handle_request(events[i].data.fd, request);
+                }
 
 //                    send_response(events[i].data.fd, RESP_OK);
-                }
             } else {
                 printf("[+] unexpected\n");
             }
             /* check if the connection is closing */
             if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
                 printf("[+] connection closed\n");
+                fflush(stdout);
                 epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
                 close(events[i].data.fd);
                 continue;
