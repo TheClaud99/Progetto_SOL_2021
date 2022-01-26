@@ -142,7 +142,30 @@ int openFile(const char *pathname, int flags) {
 
 
 int readFile(const char *pathname, void **buf, size_t *size) {
-    return 0;
+
+    response_t response;
+    request_t request = prepare_request(REQ_READ, 0, pathname, 0);
+
+    send_request(fd_socket, request);
+    response = receive_response(fd_socket);
+
+    if(response == RESP_OK) {
+
+        request_t server_request;
+        server_request = receive_request(fd_socket);
+
+        send_response(fd_socket, RESP_OK);
+
+        *size = server_request.size;
+        *buf = cmalloc(*size);
+        receive_message(fd_socket, *buf, *size);
+
+        return 0;
+    }
+
+
+    set_errno(response);
+    return -1;
 }
 
 

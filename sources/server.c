@@ -204,8 +204,25 @@ void handle_request(int client_fd, request_t request) {
 
         case REQ_NULL:
             break;
-        case REQ_READ:
+        case REQ_READ: {
+            char *buf;
+            size_t size;
+
+            read_file(request.file_name, &buf, &size);
+
+            send_response(client_fd, RESP_OK);
+
+            request_t send_file_request = prepare_request(REQ_SEND_FILE, size, request.file_name, 0);
+            send_request(client_fd, send_file_request);
+
+            response_t response = receive_response(client_fd);
+            if(response == RESP_OK) {
+                send_message(client_fd, buf, size);
+            }
+
+            free(buf);
             break;
+        }
         case REQ_READ_N:
             break;
         case REQ_WRITE: {

@@ -48,6 +48,8 @@ file_data_t *get_file(char *file_name);
 
 void write_file(char *file_name, char *data, size_t size);
 
+int read_file(char *file_name, char **buf, size_t *size);
+
 void append_to_file(char *file_name, char *data, size_t size);
 
 int lockfile(char *file_name);

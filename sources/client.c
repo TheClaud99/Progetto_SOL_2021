@@ -3,7 +3,7 @@
  * @brief   Contiene l'implementazione del client, tra cui la lettura dei parametri in ingresso ed esecuzione delle richieste verso il server.
 **/
 
-#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <string.h>
@@ -119,7 +119,7 @@ int set_operations(int argc, char *argv[]) {
                 break;
             }
 
-            case 'D': { // Cartella dove memorizzare file rimossi dal server
+            case 'd': { // Cartella dove memorizzare file rimossi dal server
                 memset(removed_file_dir, 0, PATH_MAX);
                 strcpy(removed_file_dir, optarg);
                 break;
@@ -196,6 +196,41 @@ int send_files(char *files) {
     return writed_files;
 }
 
+int read_files(char *files) {
+    int readed_files = 0;
+    char *save_ptr;
+    char *buf;
+    char save_path[PATH_MAX];
+    char *file_name;
+    size_t size;
+    FILE* file;
+
+    char *file_path = strtok_r(files, ",", &save_ptr);
+    while (file_path != NULL) {
+
+        ec_meno1(openFile(file_path, 0), "openFile")
+        ec_meno1(readFile(file_path, (void*)&buf, &size), "readFile");
+        ec_meno1(closeFile(file_path), "closeFile");
+
+
+        file_name = basename(file_path);
+        strcpy(save_path, removed_file_dir);
+        strcat(save_path, file_name);
+
+        ec_null(file = fopen(save_path, "wb"), "fopen read_files")
+        fwrite(buf, 1, size, file); // size - 1 perché evito di scrivere il carattere di terminazione
+
+        Info("File %s salavato in %s", file_name, save_path)
+
+        fclose(file);
+        free(buf);
+        file_path = strtok_r(NULL, ",", &save_ptr);
+        readed_files++;
+    }
+
+    return readed_files;
+}
+
 
 void execute_ops(int count_ops) {
     for (int i = 0; i < count_ops; i++) {
@@ -210,6 +245,7 @@ void execute_ops(int count_ops) {
             }
 
             case 'r': { // lista di file da leggere dal server separati da virgola
+                read_files(ops[i].arguments);
                 break;
             }
 

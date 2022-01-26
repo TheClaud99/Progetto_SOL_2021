@@ -46,6 +46,15 @@ void write_file(char *file_name, char *data, size_t size) {
     f->length = size;
 }
 
+int read_file(char *file_name, char **buf, size_t *size) {
+    file_data_t *f = get_file(file_name);
+    *size = f->length;
+    *buf = cmalloc(*size);
+    strncpy(*buf, f->file, *size);
+
+    return 0;
+}
+
 void append_to_file(char *file_name, char *data, size_t size) {
     file_data_t *f = get_file(file_name);
     size_t total_size = f->length + size;
