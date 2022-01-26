@@ -24,6 +24,7 @@
 #include "utils.h"
 #include "communication.h"
 #include "file_manager.h"
+#include "tpool.h"
 
 
 #define MAX_EVENTS      32
@@ -42,6 +43,10 @@ volatile sig_atomic_t sigquit = 0; // termina dopo la fine delle richieste clien
 volatile sig_atomic_t sigint = 0; // termina dopo la fine delle richieste client
 
 int pipesegnali[2];
+int clientspipe[2];
+
+// La threadpool che gestirà le richieste dei client
+tpool_t *tm;
 
 // Variabili external
 int print_debug = 1;
@@ -247,6 +252,23 @@ void handle_request(int client_fd, request_t request) {
     }
 }
 
+void worker(void *arg) {
+    int *val = arg;
+    int client_fd = *val;
+    request_t request;
+    char buf[BUF_SIZE];
+
+    memset(buf, 0, sizeof(buf));
+    request = receive_request(client_fd);
+
+    handle_request(client_fd, request);
+
+    tInfo("Eseguita richiesta %d del client %d", request.id, client_fd)
+
+    // Comunico al master thread di ri-ascoltare nuovamente il descrittore
+    write(clientspipe[1], &client_fd, sizeof(int));
+}
+
 /*
  * epoll echo server
  */
@@ -274,6 +296,9 @@ void server_run() {
     // Registro la pipe dei segnali
     epoll_ctl_add(epfd, pipesegnali[0], EPOLLIN);
 
+    // Registro la pipe dei client
+    epoll_ctl_add(epfd, clientspipe[0], EPOLLIN);
+
     socklen = sizeof(cli_addr);
 
     while (exit != 1) {
@@ -291,16 +316,24 @@ void server_run() {
                 read(events[i].data.fd, &signum, sizeof(int));
                 debug("Arrvivato segnale %d da pipe", signum)
                 break;
-            } else if (events[i].events & EPOLLIN) {
-                /* handle EPOLLIN event */
-                memset(buf, 0, sizeof(buf));
-                request = receive_request(events[i].data.fd);
+            } else if (events[i].data.fd == clientspipe[0]) { // un thread ha eseguito la richiesta di un client
+                int client_fd;
+                read(events[i].data.fd, &client_fd, sizeof(int));
+                Info("Eseguita richiesta del client %d, lo rimetto in ascolto", client_fd)
+                epoll_ctl_add(epfd, client_fd, EPOLLIN);
+            } else if (events[i].events & EPOLLIN) { // ci sono dati da leggere da un client
 
-                if (request.id != REQ_NULL) {
-                    handle_request(events[i].data.fd, request);
+                if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
+                    // Se l'evento è scatenato da una disconnessione, non eseguo nessuna richiesta
+                    memset(buf, 0, sizeof(buf));
+                    receive_request(events[i].data.fd);
+                } else {
+                    // La richiesta del client sarà letta ed eseguita da un worker
+                    int client_fd = events[i].data.fd;
+                    tpool_add_work(tm, worker, &client_fd);
+                    epoll_ctl(epfd, EPOLL_CTL_DEL, client_fd, NULL);
                 }
 
-//                    send_response(events[i].data.fd, RESP_OK);
             } else {
                 printf("[+] unexpected\n");
             }
@@ -371,10 +404,25 @@ int main(int argc, char *argv[]) {
     ec_meno1(pthread_create(&singnal_handler_thread, NULL, signa_handler, (pipesegnali + 1)),
              "pthread_create singal handler")
 
+    /*========= PIPE DEI CLIENT =========*/
+    ec_meno1(pipe(clientspipe), "pipe client")
+
+    /*========= THREAD WORKERS =========*/
+    tm = tpool_create(config.max_workers);
+
+
     /*========= ESECUZIONE SERVER =========*/
     server_run();
 
+    /*========= CHIUSURA =========*/
+    tpool_destroy(tm);
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
+
+    // Chiudo le pipe
+    close(pipesegnali[0]);
+    close(pipesegnali[1]);
+    close(clientspipe[0]);
+    close(clientspipe[1]);
 
     printf("Max workers: %d", config.max_workers);
     return 0;

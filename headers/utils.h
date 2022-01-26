@@ -51,6 +51,24 @@
         fflush(stdout); \
     }
 
+#define Info(s, ...) \
+    { \
+        char info[80] = "INFO: \0"; \
+        strncat(info, s, 80 - strlen(info)); \
+        fprintf(stdout, info, ##__VA_ARGS__); \
+        fprintf(stdout, "\n");             \
+        fflush(stdout); \
+    }
+
+#define tInfo(s, ...) \
+    { \
+        char info[80] = "THREAD %p: \0"; \
+        strncat(info, s, 80 - strlen(info)); \
+        fprintf(stdout, info, pthread_self(), ##__VA_ARGS__); \
+        fprintf(stdout, "\n");             \
+        fflush(stdout); \
+    }
+
 #define warning_if(c, s, ...) \
     if(c) { \
         char warning[80] = "WARNING: \0"; \
