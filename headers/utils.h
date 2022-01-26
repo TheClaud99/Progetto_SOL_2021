@@ -62,7 +62,7 @@
 
 #define tInfo(s, ...) \
     { \
-        char info[80] = "THREAD %p: \0"; \
+        char info[80] = "THREAD %ld: \0"; \
         strncat(info, s, 80 - strlen(info)); \
         fprintf(stdout, info, pthread_self(), ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \

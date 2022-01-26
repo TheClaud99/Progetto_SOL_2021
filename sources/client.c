@@ -43,6 +43,7 @@ operation_t ops[MAX_PARAMS];
 char removed_file_dir[PATH_MAX];
 
 int print_debug = 0;
+int time_to_wait = 0;
 
 /*
  * test clinet
@@ -124,6 +125,11 @@ int set_operations(int argc, char *argv[]) {
                 break;
             }
 
+            case 't': { // specifica tempo tra una richiesta e l'altra in ms
+                time_to_wait = (int)strtol(optarg, NULL, 10);
+                break;
+            }
+
             case '?': { // opzione non valida
                 printf("> Argomento %c non riconosciuto", optopt);
                 break;
@@ -195,6 +201,10 @@ void execute_ops(int count_ops) {
     for (int i = 0; i < count_ops; i++) {
         switch (ops[i].param) {
             case 'w': {
+                break;
+            }
+
+            case 'W': {
                 send_files(ops[i].arguments);
                 break;
             }
@@ -208,10 +218,6 @@ void execute_ops(int count_ops) {
             }
 
             case 'd': { // cartella dove salvare file letti con la r oppure R (INSIEME A r|R!)
-                break;
-            }
-
-            case 't': { // specifica tempo tra una richiesta e l'altra in ms
                 break;
             }
 
@@ -239,6 +245,9 @@ void execute_ops(int count_ops) {
                 break;
             }
         }
+
+        // Attendo il tempo specificato per mandare la richiesta successiva
+        msleep(time_to_wait);
     }
 }
 
