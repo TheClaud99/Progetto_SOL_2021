@@ -250,10 +250,8 @@ void execute_ops(int count_ops) {
             }
 
             case 'R': { // legge n file qualsiasi dal server (se n=0 vengono letti tutti)
-                break;
-            }
-
-            case 'd': { // cartella dove salvare file letti con la r oppure R (INSIEME A r|R!)
+                int nfiles = (int)strtol(ops[i].arguments, NULL, 10);
+                readNFiles(nfiles, removed_file_dir);
                 break;
             }
 

@@ -46,13 +46,18 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     return 0;
 }
 
-void receive_rejected_files(const char *dirname) {
+void receive_files(const char *dirname, int nfiles) {
     request_t server_request;
+    int count = 0;
     server_request = receive_request(fd_socket);
-    while (server_request.id == REQ_SEND_FILE) {
+    // Ricevo file finché il server continua a mandare richeiste o
+    // finché non si esaurisce il contatore.
+    // se nfiles è 0 continuo a ricevere finché il server iniva file
+    while (server_request.id == REQ_SEND_FILE && (nfiles <= 0 || count < nfiles)) {
         read_and_save(dirname, server_request.file_name, server_request.size);
         send_response(fd_socket, RESP_OK);
         server_request = receive_request(fd_socket);
+        count++;
     }
 }
 
@@ -173,6 +178,17 @@ int readFile(const char *pathname, void **buf, size_t *size) {
 
 
 int readNFiles(int N, const char *dirname) {
+
+    response_t response;
+    request_t request = prepare_request(REQ_READ_N, N, NULL, 0);
+
+    send_request(fd_socket, request);
+    response = receive_response(fd_socket);
+
+    if(response == RESP_OK) {
+        receive_files(dirname, N);
+    }
+
     return 0;
 }
 
@@ -204,7 +220,7 @@ int writeFile(const char *pathname, const char *dirname) {
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
-        receive_rejected_files(dirname);
+        receive_files(dirname, 0);
         response = RESP_OK;
     }
 
@@ -229,7 +245,7 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
-        receive_rejected_files(dirname);
+        receive_files(dirname, 0);
         response = RESP_OK;
     }
 

@@ -50,6 +50,8 @@ void write_file(char *file_name, char *data, size_t size);
 
 int read_file(char *file_name, char **buf, size_t *size);
 
+int read_random_file(char **buf, size_t *size, char filename[], int remove);
+
 void append_to_file(char *file_name, char *data, size_t size);
 
 int lockfile(char *file_name);

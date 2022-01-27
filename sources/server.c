@@ -164,6 +164,28 @@ int create_socket(struct sockaddr_un *addr) {
     return listen_sock;
 }
 
+void sendnfiles(int client_fd, int nfiles) {
+    char *buf, file_name[MAX_FILE_NAME_LEN];
+    int counter = 0;
+    size_t size;
+    request_t send_file_request;
+
+    while (counter < nfiles && read_random_file(&buf, &size, file_name, 0) == 0) {
+        send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
+        send_request(client_fd, send_file_request);
+
+        response_t response = receive_response(client_fd);
+        if (response == RESP_OK) {
+            send_message(client_fd, buf, size);
+        }
+        counter++;
+    }
+
+    // Mando una richiesta vuota per far capire al client che ho terminato di mandare file
+    send_file_request = prepare_request(REQ_NULL, 0, NULL, 0);
+    send_request(client_fd, send_file_request);
+}
+
 void handle_request(int client_fd, request_t request) {
     switch (request.id) {
         case REQ_OPEN: {
@@ -216,15 +238,19 @@ void handle_request(int client_fd, request_t request) {
             send_request(client_fd, send_file_request);
 
             response_t response = receive_response(client_fd);
-            if(response == RESP_OK) {
+            if (response == RESP_OK) {
                 send_message(client_fd, buf, size);
             }
 
             free(buf);
             break;
         }
-        case REQ_READ_N:
+        case REQ_READ_N: {
+            int nfiles = (int)request.size;
+            send_response(client_fd, RESP_OK);
+            sendnfiles(client_fd, nfiles);
             break;
+        }
         case REQ_WRITE: {
             if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);

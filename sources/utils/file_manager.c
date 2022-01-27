@@ -17,6 +17,21 @@ file_data_t* add_file(char* file_name, int author) {
     return f;
 }
 
+int remove_file(char* file_name) {
+    file_data_t* f;
+
+    f = ht_remove(ht, file_name);
+
+    if(f != NULL) {
+        free(f->file);
+        free(f);
+
+        return 0;
+    }
+
+    return -1;
+}
+
 file_data_t* get_file(char *file_name) {
     return ht_get(ht, file_name);
 }
@@ -44,6 +59,22 @@ void write_file(char *file_name, char *data, size_t size) {
     f->file = cmalloc(size);
     strncpy(f->file, data, size);
     f->length = size;
+}
+
+int read_random_file(char **buf, size_t *size, char filename[], int remove) {
+    hash_elem_it it = HT_ITERATOR(ht);
+    char* k = ht_iterate_keys(&it);
+    if(k != NULL) {
+        read_file(k, buf, size);
+        strcpy(filename, k);
+        if(remove == 1) {
+            return remove_file(k);
+        }
+
+        return 0;
+    }
+
+    return -1;
 }
 
 int read_file(char *file_name, char **buf, size_t *size) {

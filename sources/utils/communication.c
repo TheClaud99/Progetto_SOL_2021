@@ -43,10 +43,13 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
 
     request.id = id;
     request.size = size;
-    memset(request.file_name, 0, MAX_FILE_NAME_LEN);
-    request.file_name_length = get_file_name(request.file_name, file_path);
     request.flags = flags;
+    request.file_name_length = 0;
 
+    memset(request.file_name, 0, MAX_FILE_NAME_LEN);
+    if(file_path != NULL) {
+        request.file_name_length = get_file_name(request.file_name, file_path);
+    }
     return request;
 }
 
