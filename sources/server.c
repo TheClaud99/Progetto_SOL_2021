@@ -170,7 +170,7 @@ void sendnfiles(int client_fd, int nfiles) {
     size_t size;
     request_t send_file_request;
 
-    while (counter < nfiles && read_random_file(&buf, &size, file_name, 0) == 0) {
+    while ((nfiles <= 0 || counter < nfiles) && read_random_file(&buf, &size, file_name, 0) == 0) {
         send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
         send_request(client_fd, send_file_request);
 

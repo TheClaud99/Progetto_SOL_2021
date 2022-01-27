@@ -50,6 +50,7 @@ void receive_files(const char *dirname, int nfiles) {
     request_t server_request;
     int count = 0;
     server_request = receive_request(fd_socket);
+    send_response(fd_socket, RESP_OK);
     // Ricevo file finché il server continua a mandare richeiste o
     // finché non si esaurisce il contatore.
     // se nfiles è 0 continuo a ricevere finché il server iniva file
