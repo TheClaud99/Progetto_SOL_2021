@@ -289,10 +289,11 @@ void execute_ops(int count_ops) {
 
 void set_options(int argc, char *argv[]) {
     int count_ops;
+    struct timespec max_timeout = {5, 0};
 
     count_ops = set_operations(argc, argv);
 
-    openConnection(socket_file_name, 1000, get_abs_time_from_now(20));
+    openConnection(socket_file_name, 1000, max_timeout);
     execute_ops(count_ops);
     closeConnection(socket_file_name);
 }

@@ -13,6 +13,7 @@
 #include <linux/limits.h>
 #include <sched.h>
 #include <string.h>
+#include <math.h>
 
 #define ec_meno1(c, s)      \
     if ((c) == -1)          \
@@ -100,5 +101,9 @@ struct timespec get_abs_time_from_now(int seconds_from_now);
 int get_file_name(char *file_name, const char *pathname);
 
 void* cmalloc(size_t size);
+
+long toms(struct timespec _t);
+
+long millis();
 
 #endif /* UTILS_H_ */

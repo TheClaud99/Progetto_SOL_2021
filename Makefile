@@ -33,10 +33,10 @@ all: server client
 # --------- CLIENTE E SERVER -----------
 
 server: libs/libserver.so libs/libcomm.so
-	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) $(THREAD_FLAGS) sources/server.c -o server -Wl,-rpath,./build/libs -L ./build/libs -lserver -lcomm
+	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) $(THREAD_FLAGS) sources/server.c -o server -Wl,-rpath,./build/libs -L ./build/libs -lserver -lcomm -lm
 
 client: libs/libcomm.so libs/libapi.so
-	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) sources/client.c -o client -Wl,-rpath,./build/libs -L ./build/libs -lapi -lcomm
+	$(CC) $(INCLUDES) $(CFLAGS) $(CXXFLAGS) sources/client.c -o client -Wl,-rpath,./build/libs -L ./build/libs -lapi -lcomm -lm
 
 
 # --------- LIBRERIE -----------

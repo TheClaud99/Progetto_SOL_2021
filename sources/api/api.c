@@ -89,20 +89,23 @@ void set_errno(response_t response) {
 }
 
 int openConnection(const char *sockname, int msec, const struct timespec abstime) {
-    char buf[BUFSIZ];
     struct sockaddr_un sa;
-    int n;
-    int elapsed_time = 0;
     response_t response;
+
+    long start = millis(), now, msabstime = toms(abstime);
 
     set_sockaddr(sockname, &sa);
 
     while (connect(fd_socket, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
+
         if (errno == ENOENT) {
             ec_meno1(msleep(msec), "msleep");
         } else {
             PERROR("connect")
         }
+
+        now = millis();
+        if((now - start) > msabstime) break;
     }
 
     response = receive_response(fd_socket);

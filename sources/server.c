@@ -299,7 +299,6 @@ void server_run() {
     char buf[BUF_SIZE];
     struct sockaddr_un srv_addr;
     struct sockaddr_un cli_addr;
-    request_t request;
     int exit = 0;
     int signum = 0;
 
