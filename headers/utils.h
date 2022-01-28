@@ -37,8 +37,8 @@
         exit(EXIT_FAILURE); \
     }
 
-#define check_null(c, s)       \
-    if ((c) == NULL)        \
+#define check_empty_string(c, s)       \
+    if (strlen(c) == 0)        \
     {                       \
         fprintf(stderr, "ERRORE: %s \n", s); \
         fflush(stderr); \
@@ -106,7 +106,7 @@ int msleep(long msec);
 
 struct timespec get_abs_time_from_now(int seconds_from_now);
 
-int get_file_name(char *file_name, const char *pathname);
+int get_file_name(char **file_name, const char *pathname);
 
 void *cmalloc(size_t size);
 

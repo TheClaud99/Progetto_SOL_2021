@@ -45,10 +45,10 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
     request.size = size;
     request.flags = flags;
     request.file_name_length = 0;
+    request.file_name = NULL;
 
-    memset(request.file_name, 0, MAX_FILE_NAME_LEN);
     if(file_path != NULL) {
-        request.file_name_length = get_file_name(request.file_name, file_path);
+        request.file_name_length = get_file_name(&request.file_name, file_path);
     }
     return request;
 }
@@ -107,7 +107,8 @@ request_t receive_request(int fd) {
     ec_meno1(ret = read(fd, &request, msg_size), "receive request");
 
     if (request.file_name_length > 0) {
-        ec_meno1(readn(fd, request.file_name, request.file_name_length), "writen")
+        request.file_name = cmalloc(request.file_name_length);
+        ec_meno1(readn(fd, request.file_name, request.file_name_length), "readn")
         debug("Received request {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
     } else {
         debug("Received request {id: %d, size: %d}", request.id, request.size)

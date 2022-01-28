@@ -101,7 +101,11 @@ int set_operations(int argc, char *argv[]) {
 
             default:
                 // Memorizzo le operazioni che sono state richieste
-                strcpy(ops[count_ops].arguments, optarg);
+                memset(ops[count_ops].arguments, 0, MAX_LINE);
+                if (optarg != NULL) {
+                    strcpy(ops[count_ops].arguments, optarg);
+                }
+
                 ops[count_ops].param = opt;
                 count_ops++;
                 break;
@@ -218,7 +222,7 @@ int read_files(char *files) {
         strcat(save_path, file_name);
 
         ec_null(file = fopen(save_path, "wb"), "fopen read_files")
-        fwrite(buf, 1, size, file); // size - 1 perché evito di scrivere il carattere di terminazione
+        fwrite(buf, 1, size - 1, file); // size - 1 perché evito di scrivere il carattere di terminazione
 
         Info("File %s salavato in %s", file_name, save_path)
 
@@ -236,7 +240,7 @@ void execute_ops(int count_ops) {
     for (int i = 0; i < count_ops; i++) {
         switch (ops[i].param) {
             case 'w': {
-                check_null(ops[i].arguments, "Specifica la cartella da scrivere sul server")
+                check_empty_string(ops[i].arguments, "Specifica la cartella da scrivere sul server")
                 int max_files = -1;
                 char *dirnmame = strtok(ops[i].arguments, ",");
                 char *temp;
@@ -262,7 +266,7 @@ void execute_ops(int count_ops) {
             }
 
             case 'R': { // legge n file qualsiasi dal server (se n=0 vengono letti tutti)
-                int nfiles = (int) strtol(ops[i].arguments, NULL, 10);
+                int nfiles = strlen(ops[i].arguments) > 0 ? (int) strtol(ops[i].arguments, NULL, 10) : 0;
                 readNFiles(nfiles, removed_file_dir);
                 break;
             }
@@ -282,6 +286,7 @@ void execute_ops(int count_ops) {
             case ':': { // manca un argomento
                 switch (optopt) {
                     case 'R': { // può non avere argomenti (0 di default)
+                        readNFiles(0, removed_file_dir);
                         break;
                     }
 

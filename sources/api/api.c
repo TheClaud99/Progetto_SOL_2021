@@ -59,6 +59,9 @@ void receive_files(const char *dirname, int nfiles) {
     while (server_request.id == REQ_SEND_FILE && (nfiles <= 0 || count < nfiles)) {
         read_and_save(dirname, server_request.file_name, server_request.size);
         send_response(fd_socket, RESP_OK);
+
+        if (server_request.file_name != NULL) free(server_request.file_name);
+
         server_request = receive_request(fd_socket);
         count++;
     }
@@ -164,6 +167,8 @@ int readFile(const char *pathname, void **buf, size_t *size) {
 
         request_t server_request;
         server_request = receive_request(fd_socket);
+
+        if (server_request.file_name != NULL) free(server_request.file_name);
 
         send_response(fd_socket, RESP_OK);
 

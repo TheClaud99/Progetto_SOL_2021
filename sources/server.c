@@ -179,6 +179,7 @@ void sendnfiles(int client_fd, int nfiles) {
 
         send_message(client_fd, files[i].file, files[i].length);
 
+        free(files[i].name);
         free(files[i].file);
     }
 
@@ -308,6 +309,10 @@ void worker(void *arg) {
     handle_request(client_fd, request);
 
     tInfo("Eseguita richiesta %d del client %d", request.id, client_fd)
+
+    if(request.file_name != NULL) {
+        free(request.file_name);    // Eseguo la free del nome del file
+    }
 
     // Comunico al master thread di ri-ascoltare nuovamente il descrittore
     write(clientspipe[1], &client_fd, sizeof(int));

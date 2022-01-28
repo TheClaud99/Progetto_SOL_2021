@@ -87,6 +87,7 @@ int readn_files(readn_ret_t files[], int max_files) {
     while((max_files <= 0 || count < max_files) && k != NULL) {
         f = ht_get(ht, k);
 
+        files[count].name = cmalloc(strlen(k) + 1);
         strcpy(files[count].name, k);
         files[count].length = f->length;
         files[count].file = cmalloc(f->length);

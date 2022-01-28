@@ -78,9 +78,10 @@ struct timespec get_abs_time_from_now(int seconds_from_now) {
     return abstime;
 }
 
-int get_file_name(char *file_name, const char *pathname) {
-    strcpy(file_name, basename(pathname));
-    return (int) strlen(file_name);
+int get_file_name(char **file_name, const char *pathname) {
+    // todo cambiare in percorso assoluto
+    *file_name = basename(pathname);
+    return (int) strlen(*file_name) + 1;    // Il +1 server per l'allocazione corretta delle stringhe
 }
 
 void *cmalloc(size_t size) {

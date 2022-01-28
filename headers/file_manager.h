@@ -40,7 +40,7 @@ typedef struct {
 } file_data_t;
 
 typedef struct {
-    char name[MAX_FILE_NAME_LEN]; // Proprietario del file
+    char *name;
     char *file;
     size_t length;
 } readn_ret_t;

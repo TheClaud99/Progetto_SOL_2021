@@ -19,7 +19,6 @@
  *  RICHIESTA
 **/
 
-#define MAX_FILE_NAME_LEN 16
 
 typedef enum {
     REQ_NULL = 0,
@@ -41,7 +40,7 @@ typedef struct {
     int flags; // Id della richisesta
     size_t size;    // Dimensione dei dati che saranno inviati dopo questa richiesta
     size_t file_name_length;    // Lunghezza del nome del file
-    char file_name[MAX_FILE_NAME_LEN];    // File interessato dalla richiesta
+    char *file_name;    // File interessato dalla richiesta
 } request_t;
 
 
