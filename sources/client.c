@@ -45,42 +45,6 @@ char removed_file_dir[PATH_MAX];
 int print_debug = 0;
 int time_to_wait = 0;
 
-/*
- * test clinet
- */
-/*void client_run() {
-    int n, c, sockfd;
-    char buf[MAX_LINE];
-    struct sockaddr_un srv_addr;
-
-    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-
-    set_sockaddr(&srv_addr);
-
-    if (connect(sockfd, (struct sockaddr *) &srv_addr, sizeof(srv_addr)) < 0) {
-        perror("connect()");
-        exit(1);
-    }
-
-    for (;;) {
-        memset(buf, 0, sizeof(buf));
-        strcpy(buf, "Ciao\0");
-        c = (int) strlen(buf);
-        write(sockfd, buf, c);
-
-        memset(buf, 0, sizeof(buf));
-        while (errno != EAGAIN && (n = read(sockfd, buf, sizeof(buf))) > 0) {
-            printf("echo: %s\n", buf);
-            memset(buf, 0, sizeof(buf));
-
-            c -= n;
-            if (c <= 0) {
-                break;
-            }
-        }
-    }
-    close(sockfd);
-}*/
 
 static void help(void) {
     printf("Utilizzo:\n");
@@ -126,7 +90,7 @@ int set_operations(int argc, char *argv[]) {
             }
 
             case 't': { // specifica tempo tra una richiesta e l'altra in ms
-                time_to_wait = (int)strtol(optarg, NULL, 10);
+                time_to_wait = (int) strtol(optarg, NULL, 10);
                 break;
             }
 
@@ -196,6 +160,42 @@ int send_files(char *files) {
     return writed_files;
 }
 
+int send_dir(char *dirname, int remaning_files, int completed) {
+    if (remaning_files != 0) {
+        DIR *folder;
+        struct dirent *entry;
+
+        if (!(folder = opendir(dirname))) return -1;
+
+        // Scorro i file nella cartella
+        while ((entry = readdir(folder)) != NULL && (remaning_files != 0)) {
+            char path[PATH_MAX];
+            if (dirname[strlen(dirname) - 1] != '/')
+                snprintf(path, sizeof(path), "%s/%s", dirname, entry->d_name);
+            else
+                snprintf(path, sizeof(path), "%s%s", dirname, entry->d_name);
+
+            struct stat properties;
+
+            ec_meno1(stat(path, &properties), "send_dir")
+
+            if (S_ISDIR(properties.st_mode)) { // se è una directory faccio una chiamata ricorsiva alla funzione
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                    continue;
+                send_dir(path, remaning_files, completed);
+            } else { // è un file
+                completed += write_or_append(path);
+
+                remaning_files--;
+            }
+        }
+
+        closedir(folder);
+    }
+
+    return completed;
+}
+
 int read_files(char *files) {
     int readed_files = 0;
     char *save_ptr;
@@ -203,13 +203,13 @@ int read_files(char *files) {
     char save_path[PATH_MAX];
     char *file_name;
     size_t size;
-    FILE* file;
+    FILE *file;
 
     char *file_path = strtok_r(files, ",", &save_ptr);
     while (file_path != NULL) {
 
         ec_meno1(openFile(file_path, 0), "openFile")
-        ec_meno1(readFile(file_path, (void*)&buf, &size), "readFile");
+        ec_meno1(readFile(file_path, (void *) &buf, &size), "readFile");
         ec_meno1(closeFile(file_path), "closeFile");
 
 
@@ -236,6 +236,18 @@ void execute_ops(int count_ops) {
     for (int i = 0; i < count_ops; i++) {
         switch (ops[i].param) {
             case 'w': {
+                check_null(ops[i].arguments, "Specifica la cartella da scrivere sul server")
+                int max_files = -1;
+                char *dirnmame = strtok(ops[i].arguments, ",");
+                char *temp;
+
+                if ((temp = strtok(NULL, ",")) != NULL) {
+                    max_files = (int) strtol(temp, NULL, 10);
+                    if (max_files == 0) max_files -= 1; // se n=0 lo considero come -1
+                }
+
+                send_dir(dirnmame, max_files, 0);
+
                 break;
             }
 
@@ -250,7 +262,7 @@ void execute_ops(int count_ops) {
             }
 
             case 'R': { // legge n file qualsiasi dal server (se n=0 vengono letti tutti)
-                int nfiles = (int)strtol(ops[i].arguments, NULL, 10);
+                int nfiles = (int) strtol(ops[i].arguments, NULL, 10);
                 readNFiles(nfiles, removed_file_dir);
                 break;
             }

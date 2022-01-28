@@ -37,6 +37,14 @@
         exit(EXIT_FAILURE); \
     }
 
+#define check_null(c, s)       \
+    if ((c) == NULL)        \
+    {                       \
+        fprintf(stderr, "ERRORE: %s \n", s); \
+        fflush(stderr); \
+        exit(EXIT_FAILURE); \
+    } \
+
 #define PERROR(s)           \
     {                       \
         perror(s);          \
@@ -100,7 +108,7 @@ struct timespec get_abs_time_from_now(int seconds_from_now);
 
 int get_file_name(char *file_name, const char *pathname);
 
-void* cmalloc(size_t size);
+void *cmalloc(size_t size);
 
 long toms(struct timespec _t);
 
