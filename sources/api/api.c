@@ -25,6 +25,8 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     char pathname[PATH_MAX];
     char *buf = cmalloc(file_size);
 
+    memset(pathname, 1, PATH_MAX);
+
     // Aspetto che il server mandi i dati del file
     receive_message(fd_socket, buf, file_size);
 
