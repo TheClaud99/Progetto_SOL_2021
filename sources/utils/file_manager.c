@@ -77,6 +77,28 @@ int read_random_file(char **buf, size_t *size, char filename[], int remove) {
     return -1;
 }
 
+int readn_files(readn_ret_t files[], int max_files) {
+    hash_elem_it it = HT_ITERATOR(ht);
+    char* k;
+    int count = 0;
+    file_data_t *f;
+
+    k = ht_iterate_keys(&it);
+    while((max_files <= 0 || count < max_files) && k != NULL) {
+        f = ht_get(ht, k);
+
+        strcpy(files[count].name, k);
+        files[count].length = f->length;
+        files[count].file = cmalloc(f->length);
+        strcpy(files[count].file, f->file);
+
+        k = ht_iterate_keys(&it);
+        count++;
+    }
+
+    return count;
+}
+
 int read_file(char *file_name, char **buf, size_t *size) {
     file_data_t *f = get_file(file_name);
     *size = f->length;

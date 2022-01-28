@@ -37,7 +37,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     ec_null(f = fopen(pathname, "wb"), "fopen read and save");
 
     // Scrivo nel file
-    fwrite(buf, 1, file_size, f);
+    fwrite(buf, 1, file_size - 1, f); // size - 1 perché non scrivo il carattere di terminazione
     printf("Ricevuto file remoto '%s' (%ld bytes) salvato in '%s'", file_name, file_size, pathname);
 
     fclose(f);

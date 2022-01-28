@@ -23,6 +23,7 @@
 #include "config.h"
 #include "hashtable.h"
 #include "statistics.h"
+#include "communication.h"
 
 #define CHECK_MEMORY_EXCEDED    1
 #define CHECK_NFILES_EXCEDED     2
@@ -38,6 +39,12 @@ typedef struct {
     int opened;
 } file_data_t;
 
+typedef struct {
+    char name[MAX_FILE_NAME_LEN]; // Proprietario del file
+    char *file;
+    size_t length;
+} readn_ret_t;
+
 extern hashtable_t *ht;
 
 void init_file_manager();
@@ -51,6 +58,8 @@ void write_file(char *file_name, char *data, size_t size);
 int read_file(char *file_name, char **buf, size_t *size);
 
 int read_random_file(char **buf, size_t *size, char filename[], int remove);
+
+int readn_files(readn_ret_t files[], int max_files);
 
 void append_to_file(char *file_name, char *data, size_t size);
 

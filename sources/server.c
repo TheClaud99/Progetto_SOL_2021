@@ -165,20 +165,21 @@ int create_socket(struct sockaddr_un *addr) {
 }
 
 void sendnfiles(int client_fd, int nfiles) {
-    char *buf, file_name[MAX_FILE_NAME_LEN];
-    int counter = 0;
-    size_t size;
     request_t send_file_request;
+    readn_ret_t files[config.max_files];
+    int readed = readn_files(files, nfiles);
 
-    while ((nfiles <= 0 || counter < nfiles) && read_random_file(&buf, &size, file_name, 0) == 0) {
-        send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
+    for (int i = 0; i < readed; i++) {
+        send_file_request = prepare_request(REQ_SEND_FILE, files[i].length, files[i].name, 0);
         send_request(client_fd, send_file_request);
 
         response_t response = receive_response(client_fd);
-        if (response == RESP_OK) {
-            send_message(client_fd, buf, size);
-        }
-        counter++;
+
+        if (response != RESP_OK) break;
+
+        send_message(client_fd, files[i].file, files[i].length);
+
+        free(files[i].file);
     }
 
     // Mando una richiesta vuota per far capire al client che ho terminato di mandare file
@@ -246,7 +247,7 @@ void handle_request(int client_fd, request_t request) {
             break;
         }
         case REQ_READ_N: {
-            int nfiles = (int)request.size;
+            int nfiles = (int) request.size;
             send_response(client_fd, RESP_OK);
             sendnfiles(client_fd, nfiles);
             break;
