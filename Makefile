@@ -82,18 +82,17 @@ $(OBJECT_FOLDER)/tpool.o: $(UTL_FOLDER)/tpool.c $(HEADERS_FOLDER)/tpool.h
 # ------------- TARGET PHONY --------------
 clean:
 	rm -f -rf build
-	rm -f -rf TestDirectory/output
+	rm -f -rf tests/outputs
 	rm -f *.$(SOCKET_EXTENSION)
 	rm -f server
 	rm -f client
 	mkdir build
 	mkdir $(OBJECT_FOLDER)
 	mkdir $(LIB_FOLDER)
-	mkdir TestDirectory/output
-	mkdir TestDirectory/output/Client
-	mkdir TestDirectory/output/Client/flushati
-	mkdir TestDirectory/output/Client/salvati
-	mkdir TestDirectory/output/Server
+	mkdir tests/outputs
+	mkdir tests/outputs/Server
+	mkdir tests/outputs/deleted
+	mkdir tests/outputs/readed
 
 
 test1:

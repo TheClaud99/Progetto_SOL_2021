@@ -223,9 +223,11 @@ int read_files(char *files) {
         ec_meno1(readFile(file_path, (void *) &buf, &size), "readFile");
         ec_meno1(closeFile(file_path), "closeFile");
 
-
         file_name = basename(file_path);
-        strcpy(save_path, removed_file_dir);
+        strcpy(save_path, readed_file_dir);
+        if (save_path[PATH_MAX - 1] != '/') {
+            strcat(save_path, "/");
+        }
         strcat(save_path, file_name);
 
         ec_null(file = fopen(save_path, "wb"), "fopen read_files")
