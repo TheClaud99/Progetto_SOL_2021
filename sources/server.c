@@ -445,6 +445,7 @@ void singlas_ignore() {
 int main(int argc, char *argv[]) {
 
     pthread_t singnal_handler_thread;
+    int graceful_exit;
 
     if (argc >= 3 && strcmp(argv[1], "-conf") == 0) {
         char *config_filename = NULL;
@@ -476,7 +477,8 @@ int main(int argc, char *argv[]) {
     server_run();
 
     /*========= CHIUSURA =========*/
-    ec_meno1(threadpool_destroy(pool, 0), "threadpool_destroy")
+    graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda
+    ec_meno1(threadpool_destroy(pool, graceful_exit), "threadpool_destroy")
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
 
     // Chiudo le pipe
