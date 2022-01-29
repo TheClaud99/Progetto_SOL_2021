@@ -139,22 +139,27 @@ int send_response(int fd, response_t response) {
 void send_response_on_error(int fd) {
     switch (errno) {
         case ENOENT: {
+            Info("Il client %d ha provato ad accedere ad un file inesistente", fd)
             send_response(fd, RESP_FILE_NOT_EXISTS);
             break;
         }
         case EEXIST: {
+            Info("Il client %d ha provato a creare un file già esistente", fd)
             send_response(fd, RESP_FILE_EXISTS);
             break;
         }
         case EPERM: {
+            Info("Il client %d ha provato ad accedere ad un file senza prima aprirlo", fd)
             send_response(fd, RESP_FILE_NOT_OPENED);
             break;
         }
         case EACCES: {
+            Info("Il client %d ha provato ad eseguire un'operazione per cui è richiesta la lock, senza possderla", fd)
             send_response(fd, RESP_NO_PERMISSION);
             break;
         }
         default: {
+            Info("Il client %d ha riscontrato un errore generico", fd)
             send_response(fd, RESP_ERROR);
         }
     }
