@@ -6,15 +6,46 @@ void init_file_manager() {
     ec_null(ht = ht_create(config.max_files), "hash table create");
 }
 
-file_data_t* add_file(char* file_name, int author) {
+int open_file(char *file_name, int client_fd) {
+    file_data_t *f;
+
+    if((f = ht_get(ht, file_name)) == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
+
+    FD_SET(client_fd, &f->opened_by);
+
+    return 0;
+}
+
+int file_exists(char *file_name) {
+    file_data_t *f;
+
+    if((f = ht_get(ht, file_name)) == NULL) {
+        return 0;
+    }
+
+    return 1;
+}
+
+
+int add_file(char* file_name, int author) {
+
+    if(ht_get(ht, file_name) != NULL) {
+        errno = EEXIST;
+        return -1;
+    }
+
     file_data_t* f = cmalloc(sizeof(file_data_t));
     f->author = author;
     f->update_date = time(NULL);
     f->length = 0;
+    FD_ZERO(&f->opened_by);
 
     ht_put(ht, file_name, f);
 
-    return f;
+    return 0;
 }
 
 int remove_file(char* file_name) {
@@ -39,7 +70,10 @@ file_data_t* get_file(char *file_name) {
 int lockfile(char *file_name) {
     file_data_t *f = get_file(file_name);
 
-    if(f == NULL) return -1;
+    if(f == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
 
     f->locked = 1;
     return 0;
@@ -123,12 +157,15 @@ void append_to_file(char *file_name, char *data, size_t size) {
     f->length = total_size;
 }
 
-int close_file(char *file_name) {
+int close_file(char *file_name, int client_fd) {
     file_data_t *f = get_file(file_name);
 
-    if(f == NULL) return -1;
+    if(f == NULL) {
+        errno = ENOENT;
+        return -1;
+    }
 
-    f->opened = 0;
+    FD_CLR(client_fd, &f->opened_by);
     return 0;
 }
 

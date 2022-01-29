@@ -48,6 +48,14 @@ typedef struct {
 #define O_CREATE    1
 #define O_LOCK      2
 
+#define ec_response(c, fd)          \
+    if ((c) == -1)                  \
+    {                               \
+        send_response_on_error(fd); \
+        break;                      \
+    }
+
+
 /**
  *  RISPOSTA
 **/
@@ -132,6 +140,8 @@ int receive_message(int fd, char *buf, size_t size);
 int send_response(int fd, response_t response);
 
 response_t receive_response(int fd);
+
+void send_response_on_error(int fd);
 
 int send_request(int fd, request_t request);
 

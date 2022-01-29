@@ -136,6 +136,26 @@ int send_response(int fd, response_t response) {
     return 0;
 }
 
+void send_response_on_error(int fd) {
+    switch (errno) {
+        case ENOENT: {
+            send_response(fd, RESP_FILE_NOT_EXISTS);
+            break;
+        }
+        case EEXIST: {
+            send_response(fd, RESP_FILE_EXISTS);
+            break;
+        }
+        case EPERM: {
+            send_response(fd, RESP_NO_PERMISSION);
+            break;
+        }
+        default: {
+            send_response(fd, RESP_ERROR);
+        }
+    }
+}
+
 response_t receive_response(int fd) {
 
     response_t response = RESP_NULL;

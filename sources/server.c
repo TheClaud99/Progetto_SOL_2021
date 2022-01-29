@@ -192,8 +192,6 @@ void handle_request(int client_fd, request_t request) {
     switch (request.id) {
         case REQ_OPEN: {
 
-            file_data_t *f = get_file(request.file_name);
-
             if (request.flags & O_CREATE) {
 
                 if (check_memory_exced(request.size, CHECK_NFILES_EXCEDED)) { // Devo liberarmi di qualche file
@@ -201,26 +199,17 @@ void handle_request(int client_fd, request_t request) {
                     // todo implementare espulsione file
                 }
 
-                if (f != NULL) {
-                    send_response(client_fd, RESP_FILE_EXISTS);
-                    return;
-                }
-
-                f = add_file(request.file_name, client_fd);
+                ec_response(add_file(request.file_name, client_fd), client_fd);
 
                 debug("Creato file %s", request.file_name)
             }
 
-            if (f == NULL) {
-                send_response(client_fd, RESP_FILE_NOT_EXISTS);
-                return;
-            }
+            ec_response(open_file(request.file_name, client_fd), client_fd);
 
             if (request.flags & O_LOCK) {
-                f->locked = 1;
+                lockfile(request.file_name);
             }
 
-            f->opened = 1;
             send_response(client_fd, RESP_SUCCES);
 
             break;
@@ -287,7 +276,7 @@ void handle_request(int client_fd, request_t request) {
         case REQ_UNLOCK:
             break;
         case REQ_CLOSE:
-            close_file(request.file_name);
+            ec_response(close_file(request.file_name, client_fd), client_fd);
             send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_DELETE:

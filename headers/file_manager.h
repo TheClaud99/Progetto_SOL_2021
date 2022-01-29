@@ -19,6 +19,7 @@
 #include <linux/limits.h>
 #include <sched.h>
 #include <string.h>
+#include <sys/select.h>
 
 #include "config.h"
 #include "hashtable.h"
@@ -37,6 +38,7 @@ typedef struct {
     int locked;
     int last_action;
     int opened;
+    fd_set opened_by;   // Insieme dei file descriptor dei client che hanno il file aperto
 } file_data_t;
 
 typedef struct {
@@ -49,7 +51,11 @@ extern hashtable_t *ht;
 
 void init_file_manager();
 
-file_data_t *add_file(char *file_name, int author);
+int open_file(char *file_name, int client_fd);
+
+int file_exists(char *file_name);
+
+int add_file(char *file_name, int author);
 
 file_data_t *get_file(char *file_name);
 
@@ -67,7 +73,7 @@ int lockfile(char *file_name);
 
 int unlockfile(char *file_name);
 
-int close_file(char *file_name);
+int close_file(char *file_name, int client_fd);
 
 void close_file_manager();
 
