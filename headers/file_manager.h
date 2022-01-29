@@ -37,8 +37,9 @@ typedef struct {
     int author;
     int locked_by;
     int last_action;
-    int opened;
-    fd_set opened_by;   // Insieme dei file descriptor dei client che hanno il file aperto
+    fd_set opened_by;           // Insieme dei file descriptor dei client che hanno il file aperto
+    pthread_mutex_t mtx;        // Lock per accedere al file in maniera concorrente
+    pthread_cond_t lock_cond;   // Condizione segnalata al rilascio di locked_by
 } file_data_t;
 
 typedef struct {
