@@ -137,7 +137,10 @@ static void epoll_ctl_add(int epfd, int fd, uint32_t events) {
     ev.events = events;
     ev.data.fd = fd;
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-        if (errno != EEXIST) {Error("epoll_ctl add di %d", fd) PERROR("epoll_ctl")}
+        if (errno != EEXIST) {
+            Error("epoll_ctl add di %d", fd)
+            PERROR("epoll_ctl")
+        }
     }
 }
 
