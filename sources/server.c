@@ -136,7 +136,9 @@ int should_force_exit() {
 static void epoll_ctl_add(int epfd, int fd, uint32_t events) {
     ev.events = events;
     ev.data.fd = fd;
-    ec_meno1(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev), "Epoll ctl");
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
+        if (errno != EEXIST) PERROR("epoll_ctl")
+    }
 }
 
 static void set_sockaddr(struct sockaddr_un *addr) {
@@ -308,9 +310,11 @@ void worker(void *arg) {
 
     tInfo("Eseguita richiesta %d del client %d", request.id, client_fd)
 
-    if(request.file_name != NULL) {
+    if (request.file_name != NULL) {
         free(request.file_name);    // Eseguo la free del nome del file
     }
+
+    tInfo("Chiudo connessione con client %d", client_fd)
 
     // Comunico al master thread di ri-ascoltare nuovamente il descrittore
     write(clientspipe[1], &client_fd, sizeof(int));
@@ -355,7 +359,7 @@ void server_run() {
                 conn_sock = accept(listen_sock, (struct sockaddr *) &cli_addr, &socklen);
                 epoll_ctl_add(epfd, conn_sock, EPOLLIN);
 
-                printf("[+] New client connected, fd: %d\n", conn_sock);
+                Info("New client connected, fd: %d", conn_sock);
 
                 send_response(conn_sock, RESP_SUCCES);
             } else if (events[i].data.fd == pipesegnali[0]) { // è arrivato un segnale dalla pipe
@@ -386,8 +390,8 @@ void server_run() {
             }
             /* check if the connection is closing */
             if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
-                printf("[+] connection closed\n");
-                fflush(stdout);
+                Info("Connection closed with client %d", events[i].data.fd)
+
                 epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
                 close(events[i].data.fd);
                 continue;
