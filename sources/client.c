@@ -216,6 +216,8 @@ int read_files(char *files) {
     size_t size;
     FILE *file;
 
+    memset(save_path, 1, PATH_MAX);
+
     char *file_path = strtok_r(files, ",", &save_ptr);
     while (file_path != NULL) {
 
