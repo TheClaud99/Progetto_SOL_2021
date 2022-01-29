@@ -192,6 +192,13 @@ void handle_request(int client_fd, request_t request) {
     switch (request.id) {
         case REQ_OPEN: {
 
+            int lock = 0;
+
+            if (request.flags & O_LOCK) {
+                lock = 1;
+            }
+
+
             if (request.flags & O_CREATE) {
 
                 if (check_memory_exced(request.size, CHECK_NFILES_EXCEDED)) { // Devo liberarmi di qualche file
@@ -199,15 +206,11 @@ void handle_request(int client_fd, request_t request) {
                     // todo implementare espulsione file
                 }
 
-                ec_response(add_file(request.file_name, client_fd), client_fd);
+                ec_response(add_file(request.file_name, lock, client_fd), client_fd);
 
                 debug("Creato file %s", request.file_name)
-            }
-
-            ec_response(open_file(request.file_name, client_fd), client_fd);
-
-            if (request.flags & O_LOCK) {
-                lockfile(request.file_name);
+            } else {
+                ec_response(open_file(request.file_name, lock, client_fd), client_fd);
             }
 
             send_response(client_fd, RESP_SUCCES);
@@ -221,7 +224,7 @@ void handle_request(int client_fd, request_t request) {
             char *buf;
             size_t size;
 
-            read_file(request.file_name, &buf, &size);
+            ec_response(read_file(request.file_name, &buf, &size, client_fd), client_fd);
 
             send_response(client_fd, RESP_OK);
 
@@ -266,20 +269,26 @@ void handle_request(int client_fd, request_t request) {
 
             char *buf = cmalloc(request.size);
             receive_message(client_fd, buf, request.size);
-            append_to_file(request.file_name, buf, request.size);
+            ec_response(append_to_file(request.file_name, buf, request.size, client_fd), client_fd);
             free(buf);
             break;
         }
 
         case REQ_LOCK:
+            ec_response(lockfile(request.file_name, client_fd), client_fd);
+            send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_UNLOCK:
+            ec_response(unlockfile(request.file_name, client_fd), client_fd);
+            send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_CLOSE:
             ec_response(close_file(request.file_name, client_fd), client_fd);
             send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_DELETE:
+            ec_response(remove_file(request.file_name, client_fd), client_fd);
+            send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_SEND_FILE:
             break;

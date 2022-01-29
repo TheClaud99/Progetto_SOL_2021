@@ -117,7 +117,7 @@ int set_operations(int argc, char *argv[]) {
 
 int write_or_append(char *file_path) {
     // se il file non esiste lo creo, ci scrivo e lo chiudo
-    if (openFile(file_path, O_CREATE) == 0) {
+    if (openFile(file_path, O_CREATE | O_LOCK) == 0) {
 
         ec_meno1(writeFile(file_path, removed_file_dir), "writeFile")
         ec_meno1(closeFile(file_path), "closeFile")
@@ -235,6 +235,23 @@ int read_files(char *files) {
     return readed_files;
 }
 
+int delete_files(char *files) {
+    int deleted_files = 0;
+    char *save_ptr;
+
+    char *file_path = strtok_r(files, ",", &save_ptr);
+    while (file_path != NULL) {
+
+        ec_meno1(removeFile(file_path), "removeFile");
+
+        Info("Rimosso file %s", file_path)
+
+        file_path = strtok_r(NULL, ",", &save_ptr);
+        deleted_files++;
+    }
+
+    return deleted_files;
+}
 
 void execute_ops(int count_ops) {
     for (int i = 0; i < count_ops; i++) {
@@ -280,6 +297,7 @@ void execute_ops(int count_ops) {
             }
 
             case 'c': { // lista di file da rimuovere dal server
+                delete_files(ops[i].arguments);
                 break;
             }
 

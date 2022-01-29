@@ -147,6 +147,10 @@ void send_response_on_error(int fd) {
             break;
         }
         case EPERM: {
+            send_response(fd, RESP_FILE_NOT_OPENED);
+            break;
+        }
+        case EACCES: {
             send_response(fd, RESP_NO_PERMISSION);
             break;
         }

@@ -83,6 +83,11 @@ void set_errno(response_t response) {
             break;
         }
 
+        case RESP_FILE_NOT_OPENED: {
+            errno = EPERM;
+            break;
+        }
+
         case RESP_FILE_NOT_EXISTS: {
             errno = ENOENT;
             break;

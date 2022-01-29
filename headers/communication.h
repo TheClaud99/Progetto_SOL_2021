@@ -68,6 +68,7 @@ typedef enum {
     RESP_ERROR,
     RESP_FILE_EXISTS,
     RESP_FILE_NOT_EXISTS,
+    RESP_FILE_NOT_OPENED,
     RESP_FULL
 } response_t;
 

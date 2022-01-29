@@ -35,7 +35,7 @@ typedef struct {
     size_t length;
     time_t update_date;
     int author;
-    int locked;
+    int locked_by;
     int last_action;
     int opened;
     fd_set opened_by;   // Insieme dei file descriptor dei client che hanno il file aperto
@@ -51,27 +51,29 @@ extern hashtable_t *ht;
 
 void init_file_manager();
 
-int open_file(char *file_name, int client_fd);
+int open_file(char *file_name, int lock, int client_fd);
 
 int file_exists(char *file_name);
 
-int add_file(char *file_name, int author);
+int add_file(char *file_name, int lock, int author);
+
+int remove_file(char* file_name, int client_fd);
 
 file_data_t *get_file(char *file_name);
 
 void write_file(char *file_name, char *data, size_t size);
 
-int read_file(char *file_name, char **buf, size_t *size);
+int read_file(char *file_name, char **buf, size_t *size, int client_fd);
 
 int read_random_file(char **buf, size_t *size, char filename[], int remove);
 
 int readn_files(readn_ret_t files[], int max_files);
 
-void append_to_file(char *file_name, char *data, size_t size);
+int append_to_file(char *file_name, char *data, size_t size, int client_fd);
 
-int lockfile(char *file_name);
+int lockfile(char *file_name, int client_fd);
 
-int unlockfile(char *file_name);
+int unlockfile(char *file_name, int client_fd);
 
 int close_file(char *file_name, int client_fd);
 
