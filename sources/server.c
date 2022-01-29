@@ -383,7 +383,12 @@ void server_run() {
                     // La richiesta del client sarà letta ed eseguita da un worker
                     int client_fd = events[i].data.fd;
                     Info("Il client %d vuole mandare una richiesta", client_fd)
-                    tpool_add_work(tm, worker, &client_fd);
+
+                    // Devo creare un'area di memoria apposita per evitare che il valore di client_fd venga
+                    // cambiato mentre è in coda
+                    int *client_fd_ptr = cmalloc(sizeof(int));
+                    *client_fd_ptr = client_fd;
+                    threadpool_add(pool, worker, client_fd_ptr, 0);
                     epoll_ctl(epfd, EPOLL_CTL_DEL, client_fd, NULL);
                 }
 
