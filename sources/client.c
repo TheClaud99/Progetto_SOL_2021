@@ -41,6 +41,7 @@ typedef struct operation {
 
 operation_t ops[MAX_PARAMS];
 char removed_file_dir[PATH_MAX];
+char readed_file_dir[PATH_MAX];
 
 int print_debug = 0;
 int time_to_wait = 0;
@@ -84,6 +85,12 @@ int set_operations(int argc, char *argv[]) {
             }
 
             case 'd': { // Cartella dove memorizzare file rimossi dal server
+                memset(readed_file_dir, 0, PATH_MAX);
+                strcpy(readed_file_dir, optarg);
+                break;
+            }
+
+            case 'D': { // Cartella dove memorizzare file rimossi dal server
                 memset(removed_file_dir, 0, PATH_MAX);
                 strcpy(removed_file_dir, optarg);
                 break;
@@ -284,7 +291,7 @@ void execute_ops(int count_ops) {
 
             case 'R': { // legge n file qualsiasi dal server (se n=0 vengono letti tutti)
                 int nfiles = strlen(ops[i].arguments) > 0 ? (int) strtol(ops[i].arguments, NULL, 10) : 0;
-                readNFiles(nfiles, removed_file_dir);
+                readNFiles(nfiles, readed_file_dir);
                 break;
             }
 
@@ -304,7 +311,7 @@ void execute_ops(int count_ops) {
             case ':': { // manca un argomento
                 switch (optopt) {
                     case 'R': { // può non avere argomenti (0 di default)
-                        readNFiles(0, removed_file_dir);
+                        readNFiles(0, readed_file_dir);
                         break;
                     }
 
