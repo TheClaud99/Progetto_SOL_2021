@@ -376,6 +376,7 @@ void server_run() {
                 } else {
                     // La richiesta del client sarà letta ed eseguita da un worker
                     int client_fd = events[i].data.fd;
+                    Info("Il client %d vuole mandare una richiesta", client_fd)
                     tpool_add_work(tm, worker, &client_fd);
                     epoll_ctl(epfd, EPOLL_CTL_DEL, client_fd, NULL);
                 }
