@@ -53,8 +53,8 @@
 
 #define debug(s, ...) \
     if(print_debug == 1) { \
-        char debug[80] = "DEBUG: \0"; \
-        strncat(debug, s, 80 - strlen(debug)); \
+        char debug[1024] = "DEBUG: \0"; \
+        strncat(debug, s, 1024 - strlen(debug)); \
         fprintf(stdout, debug, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
         fflush(stdout); \
@@ -62,8 +62,8 @@
 
 #define Info(s, ...) \
     { \
-        char info[80] = "INFO: \0"; \
-        strncat(info, s, 80 - strlen(info)); \
+        char info[1024] = "INFO: \0"; \
+        strncat(info, s, 1024 - strlen(info)); \
         fprintf(stdout, info, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
         fflush(stdout); \
@@ -71,8 +71,8 @@
 
 #define tInfo(s, ...) \
     { \
-        char info[80] = "THREAD %ld: \0"; \
-        strncat(info, s, 80 - strlen(info)); \
+        char info[1024] = "THREAD %ld: \0"; \
+        strncat(info, s, 1024 - strlen(info)); \
         fprintf(stdout, info, pthread_self(), ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
         fflush(stdout); \
@@ -80,8 +80,8 @@
 
 #define warning_if(c, s, ...) \
     if(c) { \
-        char warning[80] = "WARNING: \0"; \
-        strncat(warning, s, 80 - strlen(warning)); \
+        char warning[1024] = "WARNING: \0"; \
+        strncat(warning, s, 1024 - strlen(warning)); \
         fprintf(stdout, warning, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
         fflush(stdout); \
