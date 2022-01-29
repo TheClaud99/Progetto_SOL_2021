@@ -69,6 +69,15 @@
         fflush(stdout); \
     }
 
+#define Error(s, ...) \
+    { \
+        char info[1024] = "ERROR: \0"; \
+        strncat(info, s, 1024 - strlen(info)); \
+        fprintf(stderr, info, ##__VA_ARGS__); \
+        fprintf(stderr, "\n");             \
+        fflush(stderr); \
+    }
+
 #define tInfo(s, ...) \
     { \
         char info[1024] = "THREAD %ld: \0"; \

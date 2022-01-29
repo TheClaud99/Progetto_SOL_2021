@@ -24,7 +24,7 @@
 #include "utils.h"
 #include "communication.h"
 #include "file_manager.h"
-#include "tpool.h"
+#include "threadpool.h"
 
 
 #define MAX_EVENTS      32
@@ -46,10 +46,10 @@ int pipesegnali[2];
 int clientspipe[2];
 
 // La threadpool che gestirà le richieste dei client
-tpool_t *tm;
+threadpool_t *pool;
 
 // Variabili external
-int print_debug = 1;
+int print_debug = 0;
 config_t config;
 stats_t stats = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -137,7 +137,7 @@ static void epoll_ctl_add(int epfd, int fd, uint32_t events) {
     ev.events = events;
     ev.data.fd = fd;
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-        if (errno != EEXIST) PERROR("epoll_ctl")
+        if (errno != EEXIST) {Error("epoll_ctl add di %d", fd) PERROR("epoll_ctl")}
     }
 }
 
@@ -300,6 +300,7 @@ void handle_request(int client_fd, request_t request) {
 void worker(void *arg) {
     int *val = arg;
     int client_fd = *val;
+    free(val);
     request_t request;
     char buf[BUF_SIZE];
 
@@ -308,10 +309,11 @@ void worker(void *arg) {
 
     handle_request(client_fd, request);
 
-    tInfo("Eseguita richiesta %d del client %d", request.id, client_fd)
-
     if (request.file_name != NULL) {
+        tInfo("Eseguita richiesta %d del client %d sul file %s", request.id, client_fd, request.file_name)
         free(request.file_name);    // Eseguo la free del nome del file
+    } else {
+        tInfo("Eseguita richiesta %d del client %d", request.id, client_fd)
     }
 
     tInfo("Chiudo connessione con client %d", client_fd)
@@ -459,14 +461,14 @@ int main(int argc, char *argv[]) {
     ec_meno1(pipe(clientspipe), "pipe client")
 
     /*========= THREAD WORKERS =========*/
-    tm = tpool_create(config.max_workers);
+    ec_null((pool = threadpool_create(config.max_workers, 256, 0)), "threadpool_create");
 
 
     /*========= ESECUZIONE SERVER =========*/
     server_run();
 
     /*========= CHIUSURA =========*/
-    tpool_destroy(tm);
+    ec_meno1(threadpool_destroy(pool, 0), "threadpool_destroy")
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
 
     // Chiudo le pipe
