@@ -24,7 +24,7 @@ sleep 2
 sleep 2
 
 # terminazione lenta al server
-kill -s SIGINT $pid
+kill -s SIGHUP $pid
 
 # aspetto il server
 wait $pid

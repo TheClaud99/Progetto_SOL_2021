@@ -62,7 +62,7 @@ int remove_file(char* file_name, int client_fd);
 
 file_data_t *get_file(char *file_name);
 
-void write_file(char *file_name, char *data, size_t size);
+int write_file(char *file_name, char *data, size_t size, int client_fd);
 
 int read_file(char *file_name, char **buf, size_t *size, int client_fd);
 

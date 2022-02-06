@@ -259,7 +259,7 @@ void handle_request(int client_fd, request_t request) {
             }
             char *buf = cmalloc(request.size);
             receive_message(client_fd, buf, request.size);
-            write_file(request.file_name, buf, request.size);
+            write_file(request.file_name, buf, request.size, client_fd);
             free(buf);
             break;
         }
@@ -341,8 +341,6 @@ void server_run() {
     int exit = 0;
     int signum = 0;
 
-    init_file_manager();
-
     listen_sock = create_socket(&srv_addr);
 
     epfd = epoll_create1(0);
@@ -369,7 +367,7 @@ void server_run() {
                 send_response(conn_sock, RESP_SUCCES);
             } else if (events[i].data.fd == pipesegnali[0]) { // è arrivato un segnale dalla pipe
                 read(events[i].data.fd, &signum, sizeof(int));
-                debug("Arrvivato segnale %d da pipe", signum)
+                debug("Arrivato segnale %d da pipe", signum)
                 break;
             } else if (events[i].data.fd == clientspipe[0]) { // un thread ha eseguito la richiesta di un client
                 int client_fd;
@@ -412,8 +410,6 @@ void server_run() {
             exit = 1;
         }
     }
-
-    close_file_manager();
 
 }
 
@@ -469,19 +465,29 @@ int main(int argc, char *argv[]) {
     /*========= PIPE DEI CLIENT =========*/
     ec_meno1(pipe(clientspipe), "pipe client")
 
+    /*========= GESTORE FILE =========*/
+    init_file_manager();
+
     /*========= THREAD WORKERS =========*/
     ec_null((pool = threadpool_create(config.max_workers, 256, 0)), "threadpool_create");
-
 
     /*========= ESECUZIONE SERVER =========*/
     server_run();
 
+
     /*========= CHIUSURA =========*/
+    debug("Chiudo thread pool")
     graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda
     ec_meno1(threadpool_destroy(pool, graceful_exit), "threadpool_destroy")
+
+    debug("Chiudo singal handler")
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
 
+    debug("Chiudo file managaer")
+    close_file_manager();
+
     // Chiudo le pipe
+    debug("Chiudo le pipe")
     close(pipesegnali[0]);
     close(pipesegnali[1]);
     close(clientspipe[0]);
