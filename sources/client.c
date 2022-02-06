@@ -68,7 +68,7 @@ static void help(void) {
 int set_operations(int argc, char *argv[]) {
     int opt, count_ops = 0;
 
-    while ((opt = getopt(argc, argv, ":hf:w:W:D:r:R:d:t:l:u:c:p")) != -1) {
+    while ((opt = getopt(argc, argv, ":hf:w:W:D:r:R::d:t:l:u:c:p")) != -1) {
         switch (opt) {
             case 'p': {  // attiva la modalità debug
                 print_debug = 1;
@@ -314,15 +314,6 @@ void execute_ops(int count_ops) {
             }
 
             case ':': { // manca un argomento
-                switch (optopt) {
-                    case 'R': { // può non avere argomenti (0 di default)
-                        readNFiles(0, readed_file_dir);
-                        break;
-                    }
-
-                    default: {
-                    }
-                }
                 break;
             }
         }
