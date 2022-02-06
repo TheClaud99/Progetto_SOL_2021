@@ -153,7 +153,7 @@ int unlockfile(char *file_name, int client_fd) {
     return 0;
 }
 
-int write_file(char *file_name, char *data, size_t size, int client_fd) {
+int write_file(char *file_name, void *data, size_t size, int client_fd) {
     Pthread_mutex_lock(&ht_mtx);
     file_data_t *f = get_file(file_name);
 
@@ -178,7 +178,7 @@ int write_file(char *file_name, char *data, size_t size, int client_fd) {
     }
 
     f->file = cmalloc(size);
-    strncpy(f->file, data, size);
+    memcpy(f->file, data, size);
     f->length = size;
 
     Pthread_mutex_unlock(&f->mtx);
@@ -220,7 +220,7 @@ int readn_files(readn_ret_t files[], int max_files) {
         Pthread_mutex_lock(&f->mtx);
         files[count].length = f->length;
         files[count].file = cmalloc(f->length);
-        strncpy(files[count].file, f->file, f->length);
+        memcpy(files[count].file, f->file, f->length);
         Pthread_mutex_unlock(&f->mtx);
 
         k = ht_iterate_keys(&it);
@@ -232,7 +232,7 @@ int readn_files(readn_ret_t files[], int max_files) {
     return count;
 }
 
-int read_file(char *file_name, char **buf, size_t *size, int client_fd) {
+int read_file(char *file_name, void **buf, size_t *size, int client_fd) {
     Pthread_mutex_lock(&ht_mtx);
     file_data_t *f = get_file(file_name);
 
@@ -252,14 +252,14 @@ int read_file(char *file_name, char **buf, size_t *size, int client_fd) {
 
     *size = f->length;
     *buf = cmalloc(*size);
-    strncpy(*buf, f->file, *size);
+    memcpy(*buf, f->file, *size);
 
     Pthread_mutex_unlock(&f->mtx);
 
     return 0;
 }
 
-int append_to_file(char *file_name, char *data, size_t size, int client_fd) {
+int append_to_file(char *file_name, void *data, size_t size, int client_fd) {
     Pthread_mutex_lock(&ht_mtx);
     file_data_t *f = get_file(file_name);
 
@@ -278,10 +278,10 @@ int append_to_file(char *file_name, char *data, size_t size, int client_fd) {
     }
 
     size_t total_size = f->length + size;
-    char *new_file = cmalloc(total_size);
+    void *new_file = cmalloc(total_size);
 
-    strncpy(new_file, f->file, f->length);
-    strncat(new_file, data, size);
+    memcpy(new_file, f->file, f->length);
+    memcpy((char*)new_file + f->length, data, size);
 
     free(f->file);
 

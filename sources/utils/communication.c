@@ -53,7 +53,7 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
     return request;
 }
 
-int send_message(int fd, char *message, size_t size) {
+int send_message(int fd, void *message, size_t size) {
 
     long ret;
 
@@ -64,7 +64,7 @@ int send_message(int fd, char *message, size_t size) {
     return 0;
 }
 
-int receive_message(int fd, char *message, size_t size) {
+int receive_message(int fd, void *message, size_t size) {
 
     long ret;
 

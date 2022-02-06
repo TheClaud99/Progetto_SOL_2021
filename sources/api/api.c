@@ -23,7 +23,7 @@ static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
 int read_and_save(const char *dirname, const char *file_name, size_t file_size) {
     FILE *f;
     char pathname[PATH_MAX];
-    char *buf = cmalloc(file_size);
+    void *buf = cmalloc(file_size);
 
     memset(pathname, 1, PATH_MAX);
 
@@ -39,7 +39,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     ec_null(f = fopen(pathname, "wb"), "fopen read and save");
 
     // Scrivo nel file
-    fwrite(buf, 1, file_size - 1, f); // size - 1 perché non scrivo il carattere di terminazione
+    fwrite(buf, 1, file_size, f); // size - 1 perché non scrivo il carattere di terminazione
     printf("Ricevuto file remoto '%s' (%ld bytes) salvato in '%s'", file_name, file_size, pathname);
 
     fclose(f);
@@ -218,10 +218,10 @@ int writeFile(const char *pathname, const char *dirname) {
     ec_null(file = fopen(pathname, "rb"), "writeFile fopen")
     ec_meno1(stat(pathname, &file_stat), "writeFile stat")
 
-    size = file_stat.st_size + 1; // Imposto la dimensione di un byte in più per il carattere di terminazinoe '\0'
+    size = file_stat.st_size; // Imposto la dimensione di un byte in più per il carattere di terminazinoe '\0'
 
     // Leggo il contenuto del file in un buffer temporaneo
-    char *buffer = cmalloc(size);
+    void *buffer = cmalloc(size);
     ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
     fclose(file);
 

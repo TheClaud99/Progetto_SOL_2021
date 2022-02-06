@@ -84,7 +84,7 @@ int set_operations(int argc, char *argv[]) {
                 break;
             }
 
-            case 'd': { // Cartella dove memorizzare file rimossi dal server
+            case 'd': { // Cartella dove memorizzare file inviati dal server
                 memset(readed_file_dir, 0, PATH_MAX);
                 strcpy(readed_file_dir, optarg);
                 break;
@@ -138,10 +138,10 @@ int write_or_append(char *file_path) {
         ec_null(file = fopen(file_path, "rb"), "write_or_append fopen")
         ec_meno1(stat(file_path, &file_stat), "write_or_append stat")
 
-        size = file_stat.st_size + 1; // Imposto la dimensione di un byte in più per il carattere di terminazinoe '\0'
+        size = file_stat.st_size; // Imposto la dimensione di un byte in più per il carattere di terminazinoe '\0'
 
         // Leggo il contenuto del file in un buffer temporaneo
-        char *buffer = cmalloc(size);
+        void *buffer = cmalloc(size);
         ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
         fclose(file);
 
@@ -210,7 +210,7 @@ int send_dir(char *dirname, int remaning_files, int completed) {
 int read_files(char *files) {
     int readed_files = 0;
     char *save_ptr;
-    char *buf;
+    void *buf;
     char save_path[PATH_MAX];
     char *file_name;
     size_t size;
@@ -222,7 +222,7 @@ int read_files(char *files) {
     while (file_path != NULL) {
 
         ec_meno1(openFile(file_path, 0), "openFile")
-        ec_meno1(readFile(file_path, (void *) &buf, &size), "readFile");
+        ec_meno1(readFile(file_path, &buf, &size), "readFile");
         ec_meno1(closeFile(file_path), "closeFile");
 
         file_name = basename(file_path);
@@ -233,7 +233,7 @@ int read_files(char *files) {
         strcat(save_path, file_name);
 
         ec_null(file = fopen(save_path, "wb"), "fopen read_files")
-        fwrite(buf, 1, size - 1, file); // size - 1 perché evito di scrivere il carattere di terminazione
+        fwrite(buf, 1, size, file);
 
         Info("File %s salavato in %s", file_name, save_path)
 
@@ -295,6 +295,7 @@ void execute_ops(int count_ops) {
 
             case 'R': { // legge n file qualsiasi dal server (se n=0 vengono letti tutti)
                 int nfiles = strlen(ops[i].arguments) > 0 ? (int) strtol(ops[i].arguments, NULL, 10) : 0;
+                debug("legge %d file qualsiasi dal server (se n=0 vengono letti tutti)", nfiles)
                 readNFiles(nfiles, readed_file_dir);
                 break;
             }

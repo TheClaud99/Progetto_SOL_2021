@@ -134,9 +134,9 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
 
 void write_files(char *files);
 
-int send_message(int fd, char *message, size_t size);
+int send_message(int fd, void *message, size_t size);
 
-int receive_message(int fd, char *buf, size_t size);
+int receive_message(int fd, void *buf, size_t size);
 
 int send_response(int fd, response_t response);
 

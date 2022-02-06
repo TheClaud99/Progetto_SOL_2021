@@ -31,7 +31,7 @@
 
 typedef struct {
     int fd; // Proprietario del file
-    char *file;
+    void *file;
     size_t length;
     time_t update_date;
     int author;
@@ -44,7 +44,7 @@ typedef struct {
 
 typedef struct {
     char *name;
-    char *file;
+    void *file;
     size_t length;
 } readn_ret_t;
 
@@ -62,15 +62,15 @@ int remove_file(char* file_name, int client_fd);
 
 file_data_t *get_file(char *file_name);
 
-int write_file(char *file_name, char *data, size_t size, int client_fd);
+int write_file(char *file_name, void *data, size_t size, int client_fd);
 
-int read_file(char *file_name, char **buf, size_t *size, int client_fd);
+int read_file(char *file_name, void **buf, size_t *size, int client_fd);
 
-int read_random_file(char **buf, size_t *size, char filename[], int remove);
+int read_random_file(void **buf, size_t *size, char filename[], int remove);
 
 int readn_files(readn_ret_t files[], int max_files);
 
-int append_to_file(char *file_name, char *data, size_t size, int client_fd);
+int append_to_file(char *file_name, void *data, size_t size, int client_fd);
 
 int lockfile(char *file_name, int client_fd);
 

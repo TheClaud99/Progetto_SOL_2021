@@ -226,7 +226,7 @@ void handle_request(int client_fd, request_t request) {
         case REQ_NULL:
             break;
         case REQ_READ: {
-            char *buf;
+            void *buf;
             size_t size;
 
             ec_response(read_file(request.file_name, &buf, &size, client_fd), client_fd);
@@ -257,7 +257,7 @@ void handle_request(int client_fd, request_t request) {
             } else {
                 send_response(client_fd, RESP_OK);
             }
-            char *buf = cmalloc(request.size);
+            void *buf = cmalloc(request.size);
             receive_message(client_fd, buf, request.size);
             write_file(request.file_name, buf, request.size, client_fd);
             free(buf);
@@ -272,7 +272,7 @@ void handle_request(int client_fd, request_t request) {
                 send_response(client_fd, RESP_OK);
             }
 
-            char *buf = cmalloc(request.size);
+            void *buf = cmalloc(request.size);
             receive_message(client_fd, buf, request.size);
             ec_response(append_to_file(request.file_name, buf, request.size, client_fd), client_fd);
             free(buf);
