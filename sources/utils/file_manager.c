@@ -349,6 +349,7 @@ void close_file_manager() {
     char *k = ht_iterate_keys(&it);
     // Faccio la free di tutti i file
     while (k != NULL) {
+        debug("Free file %s", k)
         f = ht_remove(ht, k);
         free(f->file);
         free(f);

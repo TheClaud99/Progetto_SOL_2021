@@ -59,7 +59,7 @@ int send_message(int fd, void *message, size_t size) {
 
     ec_meno1(ret = writen(fd, message, size), "send message");
 
-    debug("Sended message %s", message)
+    debug("Sended message to %d", fd)
 
     return 0;
 }
@@ -70,7 +70,7 @@ int receive_message(int fd, void *message, size_t size) {
 
     ec_meno1(ret = readn(fd, message, size), "receive message");
 
-    debug("Received message %s", message)
+    debug("Received message from %d", fd)
 
     return 0;
 }
