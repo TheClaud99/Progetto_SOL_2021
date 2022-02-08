@@ -65,14 +65,23 @@ int add_file(char *file_name, int lock, int author) {
     pthread_mutex_init(&f->mtx, NULL);
     pthread_cond_init(&f->lock_cond, NULL);
 
-    ht_put(ht, file_name, f);
+    // Inserisco il file nella lista
+    Pthread_mutex_lock(&ht_mtx);
+    ec_cond(ht_put(ht, file_name, f) != HT_ERROR, "ht_put");
+    Pthread_mutex_unlock(&ht_mtx);
+    debug("Aggiunto file %s", file_name)
 
+    // Aggiorno il numero di file memorizzato
+    Pthread_mutex_lock(&stats_mtx);
+    stats.current_files_saved++;
+    Pthread_mutex_unlock(&stats_mtx);
     return 0;
 }
 
 int remove_file(char *file_name, int client_fd) {
     Pthread_mutex_lock(&ht_mtx);
     file_data_t *f = get_file(file_name);
+    size_t size = 0;
 
     if (f == NULL) {
         Pthread_mutex_unlock(&ht_mtx);
@@ -91,10 +100,18 @@ int remove_file(char *file_name, int client_fd) {
         return -1;
     }
 
+    size = f->length;
+
     pthread_cond_destroy(&f->lock_cond);
     pthread_mutex_destroy(&f->mtx);
     free(f->file);
     free(f);
+
+
+    Pthread_mutex_lock(&stats_mtx);
+    stats.current_bytes_used -= (int) size; // Aggiorno la quantità di memoriza utilizzata
+    stats.current_files_saved--;            // Aggiorno il numero di file memorizzato
+    Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
 }
@@ -182,6 +199,11 @@ int write_file(char *file_name, void *data, size_t size, int client_fd) {
     f->length = size;
 
     Pthread_mutex_unlock(&f->mtx);
+
+    // Aggiorno la quantità di memoriza utilizzata
+    Pthread_mutex_lock(&stats_mtx);
+    stats.current_bytes_used += (int) size;
+    Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
 }
@@ -281,7 +303,7 @@ int append_to_file(char *file_name, void *data, size_t size, int client_fd) {
     void *new_file = cmalloc(total_size);
 
     memcpy(new_file, f->file, f->length);
-    memcpy((char*)new_file + f->length, data, size);
+    memcpy((char *) new_file + f->length, data, size);
 
     free(f->file);
 
@@ -289,6 +311,11 @@ int append_to_file(char *file_name, void *data, size_t size, int client_fd) {
     f->length = total_size;
 
     Pthread_mutex_unlock(&f->mtx);
+
+    // Aggiorno la quantità di memoriza utilizzata
+    Pthread_mutex_lock(&stats_mtx);
+    stats.current_bytes_used += (int) size;
+    Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
 }
