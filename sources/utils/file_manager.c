@@ -89,16 +89,18 @@ int remove_file(char *file_name, int client_fd) {
         return -1;
     }
 
-    ht_remove(ht, file_name);
 
     Pthread_mutex_lock(&f->mtx);
-    Pthread_mutex_unlock(&ht_mtx);
 
     if (f->locked_by != client_fd) {
         Pthread_mutex_unlock(&f->mtx);
+        Pthread_mutex_unlock(&ht_mtx);
         errno = EACCES;
         return -1;
     }
+
+    ht_remove(ht, file_name);
+    Pthread_mutex_unlock(&ht_mtx);
 
     size = f->length;
 
