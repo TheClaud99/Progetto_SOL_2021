@@ -72,9 +72,7 @@ int add_file(char *file_name, int lock, int author) {
     debug("Aggiunto file %s", file_name)
 
     // Aggiorno il numero di file memorizzato
-    Pthread_mutex_lock(&stats_mtx);
-    stats.current_files_saved++;
-    Pthread_mutex_unlock(&stats_mtx);
+    increase_nfiles();
     return 0;
 }
 
@@ -110,10 +108,8 @@ int remove_file(char *file_name, int client_fd) {
     free(f);
 
 
-    Pthread_mutex_lock(&stats_mtx);
-    stats.current_bytes_used -= (int) size; // Aggiorno la quantità di memoriza utilizzata
-    stats.current_files_saved--;            // Aggiorno il numero di file memorizzato
-    Pthread_mutex_unlock(&stats_mtx);
+    decrease_bytes_used((int) size); // Aggiorno la quantità di memoriza utilizzata
+    decrease_nfiles();                      // Aggiorno il numero di file memorizzato
 
     return 0;
 }
@@ -203,9 +199,7 @@ int write_file(char *file_name, void *data, size_t size, int client_fd) {
     Pthread_mutex_unlock(&f->mtx);
 
     // Aggiorno la quantità di memoriza utilizzata
-    Pthread_mutex_lock(&stats_mtx);
-    stats.current_bytes_used += (int) size;
-    Pthread_mutex_unlock(&stats_mtx);
+    increase_bytes_used((int) size);
 
     return 0;
 }
@@ -315,10 +309,7 @@ int append_to_file(char *file_name, void *data, size_t size, int client_fd) {
     Pthread_mutex_unlock(&f->mtx);
 
     // Aggiorno la quantità di memoriza utilizzata
-    Pthread_mutex_lock(&stats_mtx);
-    stats.current_bytes_used += (int) size;
-    Pthread_mutex_unlock(&stats_mtx);
-
+    increase_bytes_used((int) size);
     return 0;
 }
 
@@ -364,16 +355,17 @@ void close_file_manager() {
 }
 
 int check_memory_exced(size_t data_to_insert, int flags) {
+    int ret = 0;
     Pthread_mutex_lock(&stats_mtx);
 
     if (flags & CHECK_MEMORY_EXCEDED && stats.current_bytes_used + data_to_insert > config.max_memory_size)
-        return 1;
+        ret =  1;
 
     if (flags & CHECK_NFILES_EXCEDED && stats.current_files_saved >= config.max_files) {
-        return 1;
+        ret = 1;
     }
 
     Pthread_mutex_unlock(&stats_mtx);
 
-    return 0;
+    return ret;
 }

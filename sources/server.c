@@ -363,6 +363,7 @@ void server_run() {
                 epoll_ctl_add(epfd, conn_sock, EPOLLIN);
 
                 Info("New client connected, fd: %d", conn_sock);
+                increase_connections();
 
                 send_response(conn_sock, RESP_SUCCES);
             } else if (events[i].data.fd == pipesegnali[0]) { // è arrivato un segnale dalla pipe
@@ -402,6 +403,7 @@ void server_run() {
 
                 epoll_ctl(epfd, EPOLL_CTL_DEL, events[i].data.fd, NULL);
                 close(events[i].data.fd);
+                decrease_connections();
                 continue;
             }
         }
@@ -493,6 +495,6 @@ int main(int argc, char *argv[]) {
     close(clientspipe[0]);
     close(clientspipe[1]);
 
-    printf("Max workers: %d", config.max_workers);
+    print_stats();
     return 0;
 }
