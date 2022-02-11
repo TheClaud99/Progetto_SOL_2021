@@ -43,4 +43,18 @@ typedef struct {
 extern stats_t stats;
 extern pthread_mutex_t stats_mtx;
 
+void print_stats();
+
+void increase_nfiles();
+
+void decrease_nfiles();
+
+void increase_bytes_used(int nbytes);
+
+void decrease_bytes_used(int nbytes);
+
+void increase_connections();
+
+void decrease_connections();
+
 #endif /* STATISTICS_H_ */
