@@ -300,11 +300,13 @@ void execute_ops(int count_ops) {
                 break;
             }
 
-            case 'l': { // lista di nomi di cui acquisire mutex | NON IMPL.
+            case 'l': { // lista di nomi di cui acquisire mutex
+                lockFile(ops[i].arguments);
                 break;
             }
 
-            case 'u': { // lista di nomi di cui rilasciare mutex | NON IMPL.
+            case 'u': { // lista di nomi di cui rilasciare mutex
+                unlockFile(ops[i].arguments);
                 break;
             }
 
