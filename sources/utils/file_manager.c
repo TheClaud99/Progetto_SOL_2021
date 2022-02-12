@@ -102,8 +102,14 @@ int remove_file(char *file_name, int client_fd) {
 
     size = f->length;
 
-    pthread_cond_destroy(&f->lock_cond);
+    // Risveglio tutti i thread in attesa del file, i quali vedranno che il file non è più nella lista
+    // e quindi lo considereranno inesistente
+    pthread_cond_broadcast(&f->lock_cond);
+
+    // Secondo la documentazione posso fare una destroy se subito a seguito di una unlock
+    Pthread_mutex_unlock(&f->mtx);
     pthread_mutex_destroy(&f->mtx);
+    pthread_cond_destroy(&f->lock_cond);
     free(f->file);
     free(f);
 
@@ -133,6 +139,21 @@ int lockfile(char *file_name, int client_fd) {
 
     while (f->locked_by > 0 && f->locked_by != client_fd) {
         Pthread_cond_wait(&f->lock_cond, &f->mtx);
+
+        // Controllo se il file è sempre nella hashtable, altrimenti vuol dire che è stato rimosso
+        // (unlock(&f->mtx) potrebbe dare un'errore valgrind perché è gia stata fatta la free di f, ma non c'è modo di
+        // evitarlo)
+        Pthread_mutex_unlock(&f->mtx);
+        Pthread_mutex_lock(&ht_mtx);
+        f = ht_get(ht, file_name);
+        Pthread_mutex_unlock(&ht_mtx);
+
+        if (f == NULL) {
+            errno = ENOENT;
+            return -1;
+        }
+
+        Pthread_mutex_lock(&f->mtx);
     }
     f->locked_by = client_fd;
 
