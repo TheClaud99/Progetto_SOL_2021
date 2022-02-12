@@ -58,7 +58,6 @@ void receive_files(const char *dirname, int nfiles) {
     // se nfiles è 0 continuo a ricevere finché il server iniva file
     while (server_request.id == REQ_SEND_FILE && (nfiles <= 0 || count < nfiles)) {
         read_and_save(dirname, server_request.file_name, server_request.size);
-        send_response(fd_socket, RESP_OK);
 
         if (server_request.file_name != NULL) free(server_request.file_name);
 
