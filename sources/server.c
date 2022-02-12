@@ -193,6 +193,40 @@ void sendnfiles(int client_fd, int nfiles) {
     send_request(client_fd, send_file_request);
 }
 
+void remove_files(int client_fd) {
+    void *buf;
+    char *file_name;
+    size_t size;
+    request_t send_file_request;
+    response_t response;
+
+    remove_first_file(&buf, &size, &file_name, client_fd);
+
+    send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
+    send_request(client_fd, send_file_request);
+
+    response = receive_response(client_fd);
+
+    if (response != RESP_OK) return;
+
+    send_message(client_fd, buf, size);
+
+    Info("Espulso file %s al client %d", file_name, client_fd)
+
+    free(buf);
+    free(file_name);
+
+    // Aggiorno il numero di volte in cui è stato eseguito l'alogoritmo di
+    // rimpiazzamento
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_replace_applied++;
+    Pthread_mutex_unlock(&stats_mtx);
+
+    // Mando una richiesta vuota per far capire al client che ho terminato di mandare file
+    send_file_request = prepare_request(REQ_NULL, 0, NULL, 0);
+    send_request(client_fd, send_file_request);
+}
+
 void handle_request(int client_fd, request_t request) {
     switch (request.id) {
         case REQ_OPEN: {
@@ -205,11 +239,6 @@ void handle_request(int client_fd, request_t request) {
 
 
             if (request.flags & O_CREATE) {
-
-                if (check_memory_exced(request.size, CHECK_NFILES_EXCEDED)) { // Devo liberarmi di qualche file
-                    send_response(client_fd, RESP_FULL);
-                    // todo implementare espulsione file
-                }
 
                 ec_response(add_file(request.file_name, lock, client_fd), client_fd);
 
@@ -251,9 +280,11 @@ void handle_request(int client_fd, request_t request) {
             break;
         }
         case REQ_WRITE: {
-            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
+            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED|CHECK_NFILES_EXCEDED) == 1) { // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
-                // todo implementare espulsione file
+                Info("Eseguo algoritmo di rimpiazzamento in seguito alla Write di %d sul file %s", client_fd,
+                     request.file_name)
+                remove_files(client_fd);
             } else {
                 send_response(client_fd, RESP_OK);
             }
@@ -265,9 +296,11 @@ void handle_request(int client_fd, request_t request) {
         }
         case REQ_APPEND: {
 
-            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED)) { // Devo liberarmi di qualche file
+            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED) == 1) { // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
-                // todo implementare espulsione file
+                Info("Eseguo algoritmo di rimpiazzamento in seguito alla Append di %d sul file %s", client_fd,
+                     request.file_name)
+                remove_files(client_fd);
             } else {
                 send_response(client_fd, RESP_OK);
             }
@@ -318,8 +351,6 @@ void worker(void *arg) {
     } else {
         tInfo("Eseguita richiesta %d del client %d", request.id, client_fd)
     }
-
-    tInfo("Chiudo connessione con client %d", client_fd)
 
     // Comunico al master thread di ri-ascoltare nuovamente il descrittore
     write(clientspipe[1], &client_fd, sizeof(int));

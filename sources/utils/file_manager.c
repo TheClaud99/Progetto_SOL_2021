@@ -120,6 +120,71 @@ int remove_file(char *file_name, int client_fd) {
     return 0;
 }
 
+int remove_first_file(void** buf, size_t *size, char **file_name, int client_fd) {
+    char *k;
+    file_data_t *f;
+    size_t file_name_len;
+
+    Pthread_mutex_lock(&ht_mtx);
+
+    hash_elem_it it = HT_ITERATOR(ht);
+    k = ht_iterate_keys(&it);
+
+    f = ht_get(ht, k);
+
+    if (f == NULL) {
+        Pthread_mutex_unlock(&ht_mtx);
+        errno = ENOENT;
+        return -1;
+    }
+
+    Pthread_mutex_lock(&f->mtx);
+
+    // Devo temporaneamente rilasciare la lock sulla lista per aspettare che il file sia sbloccato
+    // dall'utente che lo sta bloccando
+    Pthread_mutex_unlock(&ht_mtx);
+
+    while (f->locked_by > 0 && f->locked_by != client_fd) {
+        Pthread_cond_wait(&f->lock_cond, &f->mtx);
+
+        // Controllo se il file è sempre nella hashtable, altrimenti vuol dire che è stato rimosso
+        // (unlock(&f->mtx) potrebbe dare un'errore valgrind perché è gia stata fatta la free di f, ma non c'è modo di
+        // evitarlo)
+        Pthread_mutex_unlock(&f->mtx);
+        Pthread_mutex_lock(&ht_mtx);
+        f = ht_get(ht, k);
+        Pthread_mutex_unlock(&ht_mtx);
+
+        if (f == NULL) {
+            errno = ENOENT;
+            return -1;
+        }
+
+        Pthread_mutex_lock(&f->mtx);
+    }
+
+    // Prendo i dati sul file letto
+    *size = f->length;
+    *buf = f->file;
+    file_name_len = strlen(k) + 1;
+    *file_name = cmalloc(file_name_len * sizeof (char));
+    strncpy(*file_name, k, file_name_len);
+
+    // Riacquisisco la lock sulla lista e rimuovo il file
+    Pthread_mutex_lock(&ht_mtx);
+    ht_remove(ht, k);
+    Pthread_mutex_unlock(&ht_mtx);
+
+    pthread_cond_destroy(&f->lock_cond);
+    pthread_mutex_destroy(&f->mtx);
+    free(f);
+
+
+    decrease_bytes_used((int) *size); // Aggiorno la quantità di memoriza utilizzata
+    decrease_nfiles();                      // Aggiorno il numero di file memorizzato
+
+    return 0;
+}
 
 file_data_t *get_file(char *file_name) {
     return ht_get(ht, file_name);
@@ -379,11 +444,14 @@ int check_memory_exced(size_t data_to_insert, int flags) {
     int ret = 0;
     Pthread_mutex_lock(&stats_mtx);
 
-    if (flags & CHECK_MEMORY_EXCEDED && stats.current_bytes_used + data_to_insert > config.max_memory_size)
+    if (flags & CHECK_MEMORY_EXCEDED && stats.current_bytes_used + data_to_insert > config.max_memory_size) {
         ret =  1;
+        Info("Oltrepassato limite di byte utilizzati con %dB", stats.current_bytes_used + data_to_insert)
+    }
 
     if (flags & CHECK_NFILES_EXCEDED && stats.current_files_saved >= config.max_files) {
         ret = 1;
+        Info("Oltrepassato limite di file con %d files", stats.current_files_saved)
     }
 
     Pthread_mutex_unlock(&stats_mtx);

@@ -60,6 +60,8 @@ int add_file(char *file_name, int lock, int author);
 
 int remove_file(char* file_name, int client_fd);
 
+int remove_first_file(void** buf, size_t *size, char **file_name, int client_fd);
+
 file_data_t *get_file(char *file_name);
 
 int write_file(char *file_name, void *data, size_t size, int client_fd);

@@ -30,27 +30,30 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     // Aspetto che il server mandi i dati del file
     receive_message(fd_socket, buf, file_size);
 
-    // Preparo il file in cui scrivere
-    strcpy(pathname, dirname);
-    if (pathname[PATH_MAX - 1] != '/') {
-        strcat(pathname, "/");
+    if (dirname != NULL) {
+        // Preparo il file in cui scrivere
+        strcpy(pathname, dirname);
+        if (pathname[PATH_MAX - 1] != '/') {
+            strcat(pathname, "/");
+        }
+        strcat(pathname, file_name);
+        ec_null(f = fopen(pathname, "wb"), "fopen read and save");
+
+        // Scrivo nel file
+        fwrite(buf, 1, file_size, f); // size - 1 perché non scrivo il carattere di terminazione
+        debug("Ricevuto file remoto '%s' (%ld bytes) salvato in '%s'", file_name, file_size, pathname)
+
+        fclose(f);
     }
-    strcat(pathname, file_name);
-    ec_null(f = fopen(pathname, "wb"), "fopen read and save");
 
-    // Scrivo nel file
-    fwrite(buf, 1, file_size, f); // size - 1 perché non scrivo il carattere di terminazione
-    printf("Ricevuto file remoto '%s' (%ld bytes) salvato in '%s'", file_name, file_size, pathname);
-
-    fclose(f);
     free(buf);
-
     return 0;
 }
 
 void receive_files(const char *dirname, int nfiles) {
     request_t server_request;
     int count = 0;
+    debug("Server pieno, avvio ricezione file")
     server_request = receive_request(fd_socket);
     // Ricevo file finché il server continua a mandare richeiste o
     // finché non si esaurisce il contatore.
@@ -152,7 +155,6 @@ int openFile(const char *pathname, int flags) {
     if(response == RESP_SUCCES) {
         return 0;
     }
-
 
     set_errno(response);
     return -1;
@@ -323,6 +325,7 @@ int closeFile(const char *pathname) {
 int removeFile(const char *pathname) {
     response_t response;
     request_t request = prepare_request(REQ_DELETE, 0, pathname, 0);
+    debug("Invio richiesta {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
     send_request(fd_socket, request);
 
     response = receive_response(fd_socket);
