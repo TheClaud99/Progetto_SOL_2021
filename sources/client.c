@@ -108,15 +108,14 @@ int set_operations(int argc, char *argv[]) {
 
             default:
 
-                if (optarg[0] == '-') { // Ho come argomento una opt successiva
-                    optind -= 1;
-                    optarg = NULL;
-                }
-
                 // Memorizzo le operazioni che sono state richieste
                 memset(ops[count_ops].arguments, 0, MAX_LINE);
                 if (optarg != NULL) {
-                    strcpy(ops[count_ops].arguments, optarg);
+                    if (optarg[0] == '-') { // Ho come argomento una opt successiva
+                        optind -= 1;
+                    } else {
+                        strcpy(ops[count_ops].arguments, optarg);
+                    }
                 }
 
                 ops[count_ops].param = opt;
@@ -322,6 +321,16 @@ void execute_ops(int count_ops) {
             }
 
             case ':': { // manca un argomento
+                switch (optopt) {
+                    case 'R': { // può non avere argomenti (0 di default)
+                        debug("Leggo tutti i file del server")
+                        readNFiles(0, readed_file_dir);
+                        break;
+                    }
+
+                    default: {
+                    }
+                }
                 break;
             }
         }
