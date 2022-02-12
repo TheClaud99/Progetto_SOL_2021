@@ -68,7 +68,7 @@ static void help(void) {
 int set_operations(int argc, char *argv[]) {
     int opt, count_ops = 0;
 
-    while ((opt = getopt(argc, argv, ":hf:w:W:D:r:R::d:t:l:u:c:p")) != -1) {
+    while ((opt = getopt(argc, argv, ":hf:w:W:D:r:R:d:t:l:u:c:p")) != -1) {
         switch (opt) {
             case 'p': {  // attiva la modalità debug
                 print_debug = 1;
@@ -107,6 +107,12 @@ int set_operations(int argc, char *argv[]) {
             }
 
             default:
+
+                if (optarg[0] == '-') { // Ho come argomento una opt successiva
+                    optind -= 1;
+                    optarg = NULL;
+                }
+
                 // Memorizzo le operazioni che sono state richieste
                 memset(ops[count_ops].arguments, 0, MAX_LINE);
                 if (optarg != NULL) {
@@ -295,7 +301,7 @@ void execute_ops(int count_ops) {
 
             case 'R': { // legge n file qualsiasi dal server (se n=0 vengono letti tutti)
                 int nfiles = strlen(ops[i].arguments) > 0 ? (int) strtol(ops[i].arguments, NULL, 10) : 0;
-                debug("legge %d file qualsiasi dal server (se n=0 vengono letti tutti)", nfiles)
+                debug("Leggo %d file qualsiasi dal server (se n=0 vengono letti tutti)", nfiles)
                 readNFiles(nfiles, readed_file_dir);
                 break;
             }
