@@ -52,11 +52,11 @@ void receive_files(const char *dirname, int nfiles) {
     request_t server_request;
     int count = 0;
     server_request = receive_request(fd_socket);
-    send_response(fd_socket, RESP_OK);
     // Ricevo file finché il server continua a mandare richeiste o
     // finché non si esaurisce il contatore.
     // se nfiles è 0 continuo a ricevere finché il server iniva file
     while (server_request.id == REQ_SEND_FILE && (nfiles <= 0 || count < nfiles)) {
+        send_response(fd_socket, RESP_OK);
         read_and_save(dirname, server_request.file_name, server_request.size);
 
         if (server_request.file_name != NULL) free(server_request.file_name);
