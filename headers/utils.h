@@ -53,7 +53,12 @@
 
 #define debug(s, ...) \
     if(print_debug == 1) { \
-        char debug[1024] = "DEBUG: \0"; \
+        char debug[1024]; \
+        time_t timer; \
+        struct tm* tm_info; \
+        timer = time(NULL); \
+        tm_info = localtime(&timer); \
+        strftime(debug, 1024, "%Y-%m-%d %H:%M:%S DEBUG: ", tm_info);  \
         strncat(debug, s, 1024 - strlen(debug)); \
         fprintf(stdout, debug, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
@@ -62,7 +67,12 @@
 
 #define Info(s, ...) \
     { \
-        char info[1024] = "INFO: \0"; \
+        char info[1024]; \
+        time_t timer; \
+        struct tm* tm_info; \
+        timer = time(NULL); \
+        tm_info = localtime(&timer); \
+        strftime(info, 1024, "%Y-%m-%d %H:%M:%S INFO: ", tm_info);  \
         strncat(info, s, 1024 - strlen(info)); \
         fprintf(stdout, info, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
@@ -79,8 +89,13 @@
     }
 
 #define tInfo(s, ...) \
-    { \
-        char info[1024] = "THREAD %ld: \0"; \
+    {                 \
+        char info[1024]; \
+        time_t timer; \
+        struct tm* tm_info; \
+        timer = time(NULL); \
+        tm_info = localtime(&timer); \
+        strftime(info, 1024, "%Y-%m-%d %H:%M:%S THREAD %%ld: ", tm_info); \
         strncat(info, s, 1024 - strlen(info)); \
         fprintf(stdout, info, pthread_self(), ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
