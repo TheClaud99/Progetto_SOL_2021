@@ -93,6 +93,7 @@ clean:
 	mkdir tests/outputs/Server
 	mkdir tests/outputs/deleted
 	mkdir tests/outputs/readed
+	mkdir tests/outputs/client_log
 
 
 test1:

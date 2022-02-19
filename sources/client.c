@@ -354,6 +354,16 @@ void set_options(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 
+    char charValue[MAXNAMLEN];
+
+    sprintf(charValue, "tests/outputs/client_log/client_%d_log.txt", getpid());
+    int fd = open(charValue, O_WRONLY | O_TRUNC | O_CREAT | O_APPEND, 0666);
+
+    ec_meno1(dup2(fd, stderr->_fileno), "dup2")
+    ec_meno1(dup2(fd, stdout->_fileno), "dup2")
+    close(fd);
+
+
     set_options(argc, argv);
 
     return 0;
