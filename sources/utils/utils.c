@@ -105,3 +105,13 @@ long millis() {
     clock_gettime(CLOCK_REALTIME, &_t);
     return toms(_t);
 }
+
+int tscmp(struct timespec a, struct timespec b) {
+    if (a.tv_sec == b.tv_sec) {
+        if (a.tv_nsec == b.tv_nsec) return 0;
+        return a.tv_nsec > b.tv_nsec ? 1 : -1;
+    }
+    else {
+        return a.tv_sec > b.tv_sec ? 1 : -1;
+    }
+}

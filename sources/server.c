@@ -200,7 +200,7 @@ void remove_files(int client_fd) {
     request_t send_file_request;
     response_t response;
 
-    remove_first_file(&buf, &size, &file_name, client_fd);
+    remove_LRU(&buf, &size, &file_name, client_fd);
 
     send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
     send_request(client_fd, send_file_request);

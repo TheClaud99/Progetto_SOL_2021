@@ -27,6 +27,10 @@ int open_file(char *file_name, int lock, int client_fd) {
         }
         f->locked_by = client_fd;
     }
+
+    // Aggiorno la data di utilizzo del file
+    ec_meno1(clock_gettime(CLOCK_MONOTONIC, &f->last_use), "clock_gettime")
+
     Pthread_mutex_unlock(&f->mtx);                        // - UNLOCK FILE
 
     return 0;
@@ -56,6 +60,7 @@ int add_file(char *file_name, int lock, int author) {
     f->length = 0;
     f->locked_by = lock == 1 ? author : -1;
     f->file = NULL;
+    ec_meno1(clock_gettime(CLOCK_MONOTONIC, &f->last_use), "clock_gettime")
 
     // Inizializzo la maschera dei client che hanno il file aperto
     FD_ZERO(&f->opened_by);
@@ -120,23 +125,50 @@ int remove_file(char *file_name, int client_fd) {
     return 0;
 }
 
-int remove_first_file(void** buf, size_t *size, char **file_name, int client_fd) {
+int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
     char *k;
-    file_data_t *f;
+    char *selected_file_name;
+    file_data_t *f = NULL;
     size_t file_name_len;
+    struct timespec min_last_use;
 
     Pthread_mutex_lock(&ht_mtx);
 
     hash_elem_it it = HT_ITERATOR(ht);
-    k = ht_iterate_keys(&it);
 
-    f = ht_get(ht, k);
+    // Inizializzo l'ultimo utilizzo più lontano a quello del primo file della lista
+    k = ht_iterate_keys(&it);
+    if (k != NULL) {
+        f = ht_get(ht, k);
+        Pthread_mutex_lock(&f->mtx);
+        min_last_use = f->last_use;
+        Pthread_mutex_unlock(&f->mtx);
+        selected_file_name = k;
+    }
+
+    k = ht_iterate_keys(&it);
+    while (k != NULL) {
+
+        file_data_t *f_temp = ht_get(ht, k);
+
+        Pthread_mutex_lock(&f->mtx);
+        if (tscmp(f->last_use, min_last_use) < 0) {
+            f = f_temp;
+            min_last_use = f_temp->last_use;
+            selected_file_name = k;
+        }
+        Pthread_mutex_unlock(&f->mtx);
+
+        k = ht_iterate_keys(&it);
+    }
 
     if (f == NULL) {
         Pthread_mutex_unlock(&ht_mtx);
         errno = ENOENT;
         return -1;
     }
+
+    Info("Selezionato per l'espulsione il file %s, lockato da %d", selected_file_name, f->locked_by)
 
     Pthread_mutex_lock(&f->mtx);
 
@@ -152,7 +184,7 @@ int remove_first_file(void** buf, size_t *size, char **file_name, int client_fd)
         // evitarlo)
         Pthread_mutex_unlock(&f->mtx);
         Pthread_mutex_lock(&ht_mtx);
-        f = ht_get(ht, k);
+        f = ht_get(ht, selected_file_name);
         Pthread_mutex_unlock(&ht_mtx);
 
         if (f == NULL) {
@@ -163,16 +195,18 @@ int remove_first_file(void** buf, size_t *size, char **file_name, int client_fd)
         Pthread_mutex_lock(&f->mtx);
     }
 
+    Info("Lock sul file acquisita")
+
     // Prendo i dati sul file letto
     *size = f->length;
     *buf = f->file;
-    file_name_len = strlen(k) + 1;
+    file_name_len = strlen(selected_file_name) + 1;
     *file_name = cmalloc(file_name_len * sizeof (char));
-    strncpy(*file_name, k, file_name_len);
+    strncpy(*file_name, selected_file_name, file_name_len);
 
     // Riacquisisco la lock sulla lista e rimuovo il file
     Pthread_mutex_lock(&ht_mtx);
-    ht_remove(ht, k);
+    ht_remove(ht, selected_file_name);
     Pthread_mutex_unlock(&ht_mtx);
 
     pthread_cond_destroy(&f->lock_cond);
@@ -282,6 +316,9 @@ int write_file(char *file_name, void *data, size_t size, int client_fd) {
     memcpy(f->file, data, size);
     f->length = size;
 
+    // Aggiorno la data di utilizzo del file
+    ec_meno1(clock_gettime(CLOCK_MONOTONIC, &f->last_use), "clock_gettime")
+
     Pthread_mutex_unlock(&f->mtx);
 
     // Aggiorno la quantità di memoriza utilizzata
@@ -358,6 +395,9 @@ int read_file(char *file_name, void **buf, size_t *size, int client_fd) {
     *buf = cmalloc(*size);
     memcpy(*buf, f->file, *size);
 
+    // Aggiorno la data di utilizzo del file
+    ec_meno1(clock_gettime(CLOCK_MONOTONIC, &f->last_use), "clock_gettime")
+
     Pthread_mutex_unlock(&f->mtx);
 
     return 0;
@@ -391,6 +431,9 @@ int append_to_file(char *file_name, void *data, size_t size, int client_fd) {
 
     f->file = new_file;
     f->length = total_size;
+
+    // Aggiorno la data di utilizzo del file
+    ec_meno1(clock_gettime(CLOCK_MONOTONIC, &f->last_use), "clock_gettime")
 
     Pthread_mutex_unlock(&f->mtx);
 

@@ -138,4 +138,6 @@ long toms(struct timespec _t);
 
 long millis();
 
+int tscmp(struct timespec a, struct timespec b);
+
 #endif /* UTILS_H_ */

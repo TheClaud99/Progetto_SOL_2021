@@ -40,6 +40,7 @@ typedef struct {
     fd_set opened_by;           // Insieme dei file descriptor dei client che hanno il file aperto
     pthread_mutex_t mtx;        // Lock per accedere al file in maniera concorrente
     pthread_cond_t lock_cond;   // Condizione segnalata al rilascio di locked_by
+    struct timespec last_use;   // Ultima data di utilizzo del file per aprtura/lettura/scrittura
 } file_data_t;
 
 typedef struct {
@@ -60,7 +61,7 @@ int add_file(char *file_name, int lock, int author);
 
 int remove_file(char* file_name, int client_fd);
 
-int remove_first_file(void** buf, size_t *size, char **file_name, int client_fd);
+int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd);
 
 file_data_t *get_file(char *file_name);
 
