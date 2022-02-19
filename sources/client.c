@@ -132,6 +132,7 @@ int write_or_append(char *file_path) {
     if (openFile(file_path, O_CREATE | O_LOCK) == 0) {
 
         ec_meno1(writeFile(file_path, removed_file_dir), "writeFile")
+        ec_meno1(unlockFile(file_path), "unlockFile")
         ec_meno1(closeFile(file_path), "closeFile")
 
     } else if (openFile(file_path, 0) == 0) { // se il file esiste già allora lo apro, ci scrivo in append e lo chiudo
