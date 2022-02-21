@@ -53,7 +53,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
 void receive_files(const char *dirname, int nfiles) {
     request_t server_request;
     int count = 0;
-    debug("Server pieno, avvio ricezione file")
+
     server_request = receive_request(fd_socket);
     // Ricevo file finché il server continua a mandare richeiste o
     // finché non si esaurisce il contatore.
@@ -234,6 +234,7 @@ int writeFile(const char *pathname, const char *dirname) {
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
+        debug("Server pieno, avvio ricezione file")
         receive_files(dirname, 0);
         response = RESP_OK;
     }
@@ -259,6 +260,7 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
+        debug("Server pieno, avvio ricezione file")
         receive_files(dirname, 0);
         response = RESP_OK;
     }

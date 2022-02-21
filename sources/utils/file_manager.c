@@ -151,26 +151,34 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
 
         file_data_t *f_temp = ht_get(ht, k);
 
-        Pthread_mutex_lock(&f->mtx);
-        if (tscmp(f->last_use, min_last_use) < 0) {
+        Pthread_mutex_lock(&f_temp->mtx);
+        // Controllo se il file è stato usato meno recentemente rispetto a quello che ho già selezionato.
+        // f->file != NULL server per evitare di espellere un file che è stato creato ma sul quale non è stata
+        // ancora fatta la write
+        if (tscmp(f_temp->last_use, min_last_use) < 0 && f_temp->file != NULL) {
             f = f_temp;
             min_last_use = f_temp->last_use;
             selected_file_name = k;
         }
-        Pthread_mutex_unlock(&f->mtx);
+        Pthread_mutex_unlock(&f_temp->mtx);
 
         k = ht_iterate_keys(&it);
     }
 
     if (f == NULL) {
         Pthread_mutex_unlock(&ht_mtx);
+        tInfo("Nessun file trovato")
         errno = ENOENT;
         return -1;
     }
 
-    Info("Selezionato per l'espulsione il file %s, lockato da %d", selected_file_name, f->locked_by)
+    tInfo("Selezionato per l'espulsione verso %d il file %s, lockato da %d", client_fd, selected_file_name, f->locked_by)
 
     Pthread_mutex_lock(&f->mtx);
+
+    file_name_len = strlen(selected_file_name) + 1;
+    *file_name = cmalloc(file_name_len * sizeof (char));
+    strncpy(*file_name, selected_file_name, file_name_len);
 
     // Devo temporaneamente rilasciare la lock sulla lista per aspettare che il file sia sbloccato
     // dall'utente che lo sta bloccando
@@ -188,6 +196,7 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
         Pthread_mutex_unlock(&ht_mtx);
 
         if (f == NULL) {
+            free(*file_name);
             errno = ENOENT;
             return -1;
         }
@@ -195,27 +204,19 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
         Pthread_mutex_lock(&f->mtx);
     }
 
+    f->locked_by = client_fd;
+
     Info("Lock sul file acquisita")
 
     // Prendo i dati sul file letto
     *size = f->length;
     *buf = f->file;
-    file_name_len = strlen(selected_file_name) + 1;
-    *file_name = cmalloc(file_name_len * sizeof (char));
-    strncpy(*file_name, selected_file_name, file_name_len);
+    *buf = cmalloc(f->length);
+    memcpy(*buf, f->file, f->length);
+    Pthread_mutex_unlock(&f->mtx);
 
-    // Riacquisisco la lock sulla lista e rimuovo il file
-    Pthread_mutex_lock(&ht_mtx);
-    ht_remove(ht, selected_file_name);
-    Pthread_mutex_unlock(&ht_mtx);
-
-    pthread_cond_destroy(&f->lock_cond);
-    pthread_mutex_destroy(&f->mtx);
-    free(f);
-
-
-    decrease_bytes_used((int) *size); // Aggiorno la quantità di memoriza utilizzata
-    decrease_nfiles();                      // Aggiorno il numero di file memorizzato
+    tInfo("Rimuovo file %s", selected_file_name)
+    remove_file(selected_file_name, client_fd);
 
     return 0;
 }

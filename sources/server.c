@@ -49,7 +49,7 @@ int clientspipe[2];
 threadpool_t *pool;
 
 // Variabili external
-int print_debug = 0;
+int print_debug = 1;
 config_t config;
 stats_t stats = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -193,28 +193,31 @@ void sendnfiles(int client_fd, int nfiles) {
     send_request(client_fd, send_file_request);
 }
 
-void remove_files(int client_fd) {
+void remove_files(int client_fd, size_t data_to_insert, int flags) {
     void *buf;
     char *file_name;
     size_t size;
     request_t send_file_request;
     response_t response;
 
-    remove_LRU(&buf, &size, &file_name, client_fd);
+    // Espello file finché non rientro entro i limiti
+    while (check_memory_exced(data_to_insert, flags) == 1) {
+        if(remove_LRU(&buf, &size, &file_name, client_fd) == -1) continue;
 
-    send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
-    send_request(client_fd, send_file_request);
+        send_file_request = prepare_request(REQ_SEND_FILE, size, file_name, 0);
+        send_request(client_fd, send_file_request);
 
-    response = receive_response(client_fd);
+        response = receive_response(client_fd);
 
-    if (response != RESP_OK) return;
+        if (response != RESP_OK) return;
 
-    send_message(client_fd, buf, size);
+        send_message(client_fd, buf, size);
 
-    Info("Espulso file %s al client %d", file_name, client_fd)
+        Info("Espulso file %s al client %d", file_name, client_fd)
 
-    free(buf);
-    free(file_name);
+        free(buf);
+        free(file_name);
+    }
 
     // Aggiorno il numero di volte in cui è stato eseguito l'alogoritmo di
     // rimpiazzamento
@@ -280,34 +283,42 @@ void handle_request(int client_fd, request_t request) {
             break;
         }
         case REQ_WRITE: {
-            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED|CHECK_NFILES_EXCEDED) == 1) { // Devo liberarmi di qualche file
+            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED | CHECK_NFILES_EXCEDED) == 1) {
+                // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
                 Info("Eseguo algoritmo di rimpiazzamento in seguito alla Write di %d sul file %s", client_fd,
                      request.file_name)
-                remove_files(client_fd);
+                remove_files(client_fd, request.size, CHECK_MEMORY_EXCEDED | CHECK_NFILES_EXCEDED);
             } else {
                 send_response(client_fd, RESP_OK);
             }
             void *buf = cmalloc(request.size);
             receive_message(client_fd, buf, request.size);
-            write_file(request.file_name, buf, request.size, client_fd);
+            if (write_file(request.file_name, buf, request.size, client_fd) == -1) {
+                send_response_on_error(client_fd);
+            }
             free(buf);
             break;
         }
         case REQ_APPEND: {
 
-            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED) == 1) { // Devo liberarmi di qualche file
+            if (check_memory_exced(request.size, CHECK_MEMORY_EXCEDED) == 1) {
+                // Devo liberarmi di qualche file
                 send_response(client_fd, RESP_FULL);
                 Info("Eseguo algoritmo di rimpiazzamento in seguito alla Append di %d sul file %s", client_fd,
                      request.file_name)
-                remove_files(client_fd);
+                remove_files(client_fd, request.size, CHECK_MEMORY_EXCEDED);
             } else {
                 send_response(client_fd, RESP_OK);
             }
 
             void *buf = cmalloc(request.size);
             receive_message(client_fd, buf, request.size);
-            ec_response(append_to_file(request.file_name, buf, request.size, client_fd), client_fd);
+
+            if (append_to_file(request.file_name, buf, request.size, client_fd) == -1) {
+                send_response_on_error(client_fd);
+            }
+
             free(buf);
             break;
         }
@@ -411,7 +422,13 @@ void server_run() {
                 if (events[i].events & (EPOLLRDHUP | EPOLLHUP)) {
                     // Se l'evento è scatenato da una disconnessione, non eseguo nessuna richiesta
                     memset(buf, 0, sizeof(buf));
-                    receive_request(events[i].data.fd);
+                    request_t request = receive_request(events[i].data.fd);
+
+                    if (request.file_name != NULL) {
+                        Info("Ricevuta richiesta %d del client %d sul file %s", request.id, events[i].data.fd,
+                             request.file_name)
+                        free(request.file_name);    // Eseguo la free del nome del file
+                    }
                 } else {
                     // La richiesta del client sarà letta ed eseguita da un worker
                     int client_fd = events[i].data.fd;

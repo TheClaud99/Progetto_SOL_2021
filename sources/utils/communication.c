@@ -90,9 +90,9 @@ int send_request(int fd, request_t request) {
     warning_if(ret != msg_size, "Inviati %ld di %ld bytes della richiesta %d", ret, msg_size, request.id)
 
     if (request.file_name_length > 0) {
-        debug("Sended request {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
+        debug("Sended request {id: %d, size: %d, file_name: %s} to %d", request.id, request.size, request.file_name, fd)
     } else {
-        debug("Sended request {id: %d, size: %d}", request.id, request.size)
+        debug("Sended request {id: %d, size: %d} to %d", request.id, request.size, fd)
     }
 
     return 0;
