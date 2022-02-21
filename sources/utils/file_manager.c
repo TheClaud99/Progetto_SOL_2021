@@ -60,6 +60,8 @@ int add_file(char *file_name, int lock, int author) {
     f->length = 0;
     f->locked_by = lock == 1 ? author : -1;
     f->file = NULL;
+    f->waiters = 0;
+    f->delete = 0;
     ec_meno1(clock_gettime(CLOCK_MONOTONIC, &f->last_use), "clock_gettime")
 
     // Inizializzo la maschera dei client che hanno il file aperto
@@ -107,9 +109,15 @@ int remove_file(char *file_name, int client_fd) {
 
     size = f->length;
 
-    // Risveglio tutti i thread in attesa del file, i quali vedranno che il file non è più nella lista
-    // e quindi lo considereranno inesistente
-    pthread_cond_broadcast(&f->lock_cond);
+    f->delete = 1;
+
+    while(f->waiters > 0) {
+        tInfo("Aspetto %d thread in coda per acquisire la lock, prima di eliminare", f->waiters)
+        // Risveglio tutti i thread in attesa del file, i quali vedranno che il file non è più nella lista
+        // e quindi lo considereranno inesistente
+        pthread_cond_broadcast(&f->lock_cond);
+        Pthread_cond_wait(&f->lock_cond, &f->mtx);
+    }
 
     // Secondo la documentazione posso fare una destroy se subito a seguito di una unlock
     Pthread_mutex_unlock(&f->mtx);
@@ -184,27 +192,22 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
     // dall'utente che lo sta bloccando
     Pthread_mutex_unlock(&ht_mtx);
 
+    f->waiters++;
     while (f->locked_by > 0 && f->locked_by != client_fd) {
         Pthread_cond_wait(&f->lock_cond, &f->mtx);
 
-        // Controllo se il file è sempre nella hashtable, altrimenti vuol dire che è stato rimosso
-        // (unlock(&f->mtx) potrebbe dare un'errore valgrind perché è gia stata fatta la free di f, ma non c'è modo di
-        // evitarlo)
-        Pthread_mutex_unlock(&f->mtx);
-        Pthread_mutex_lock(&ht_mtx);
-        f = ht_get(ht, selected_file_name);
-        Pthread_mutex_unlock(&ht_mtx);
-
-        if (f == NULL) {
+        // Il file è stato eliminato mentre ero in attesa della lock
+        if (f->delete == 1) {
             free(*file_name);
+            f->waiters--;
+            Pthread_cond_signal(&f->lock_cond);
+            Pthread_mutex_unlock(&f->mtx);
             errno = ENOENT;
             return -1;
         }
-
-        Pthread_mutex_lock(&f->mtx);
     }
-
     f->locked_by = client_fd;
+    f->waiters--;
 
     Info("Lock sul file acquisita")
 
@@ -237,25 +240,22 @@ int lockfile(char *file_name, int client_fd) {
     Pthread_mutex_lock(&f->mtx);
     Pthread_mutex_unlock(&ht_mtx);
 
+    f->waiters++;
+
     while (f->locked_by > 0 && f->locked_by != client_fd) {
         Pthread_cond_wait(&f->lock_cond, &f->mtx);
 
-        // Controllo se il file è sempre nella hashtable, altrimenti vuol dire che è stato rimosso
-        // (unlock(&f->mtx) potrebbe dare un'errore valgrind perché è gia stata fatta la free di f, ma non c'è modo di
-        // evitarlo)
-        Pthread_mutex_unlock(&f->mtx);
-        Pthread_mutex_lock(&ht_mtx);
-        f = ht_get(ht, file_name);
-        Pthread_mutex_unlock(&ht_mtx);
-
-        if (f == NULL) {
+        // Il file è stato eliminato mentre ero in attesa della lock
+        if (f->delete == 1) {
+            f->waiters--;
+            Pthread_cond_signal(&f->lock_cond);
+            Pthread_mutex_unlock(&f->mtx);
             errno = ENOENT;
             return -1;
         }
-
-        Pthread_mutex_lock(&f->mtx);
     }
     f->locked_by = client_fd;
+    f->waiters--;
 
     Pthread_mutex_unlock(&f->mtx);
 
@@ -356,6 +356,8 @@ int readn_files(readn_ret_t files[], int max_files) {
     while ((max_files <= 0 || count < max_files) && k != NULL) {
         files[count].name = cmalloc(strlen(k) + 1);
         strcpy(files[count].name, k);
+
+        tInfo("Aggiungo ai file da leggere %s", k)
 
         f = ht_get(ht, k);
 
