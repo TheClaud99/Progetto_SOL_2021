@@ -1,7 +1,7 @@
 #!/bin/bash
 # FILE DI TEST N°2
 #
-# Autore: Leonardo Pantani
+# Autore: Claudio Mano
 #
 
 # avvio il server
