@@ -150,6 +150,8 @@ int openFile(const char *pathname, int flags) {
     request_t request = prepare_request(REQ_OPEN, 0, pathname, flags);
 
     send_request(fd_socket, request);
+    free(request.file_name);
+
     response = receive_response(fd_socket);
 
     if(response == RESP_SUCCES) {
@@ -167,6 +169,8 @@ int readFile(const char *pathname, void **buf, size_t *size) {
     request_t request = prepare_request(REQ_READ, 0, pathname, 0);
 
     send_request(fd_socket, request);
+    free(request.file_name);
+
     response = receive_response(fd_socket);
 
     if(response == RESP_OK) {
@@ -229,6 +233,7 @@ int writeFile(const char *pathname, const char *dirname) {
     // Mando la richiesta per porter scrivere il file
     request = prepare_request(REQ_WRITE, size, pathname, 0);
     send_request(fd_socket, request);
+    free(request.file_name);
 
     // Aspetto una risposta dal server
     response = receive_response(fd_socket);
@@ -256,6 +261,7 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
     response_t response;
     request_t request = prepare_request(REQ_APPEND, size, pathname, 0);
     send_request(fd_socket, request);
+    free(request.file_name);
 
     response = receive_response(fd_socket);
 
@@ -280,6 +286,7 @@ int lockFile(const char *pathname) {
     response_t response;
     request_t request = prepare_request(REQ_LOCK, 0, pathname, 0);
     send_request(fd_socket, request);
+    free(request.file_name);
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
@@ -296,6 +303,7 @@ int unlockFile(const char *pathname) {
     response_t response;
     request_t request = prepare_request(REQ_UNLOCK, 0, pathname, 0);
     send_request(fd_socket, request);
+    free(request.file_name);
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
@@ -312,6 +320,7 @@ int closeFile(const char *pathname) {
     response_t response;
     request_t request = prepare_request(REQ_CLOSE, 0, pathname, 0);
     send_request(fd_socket, request);
+    free(request.file_name);
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
@@ -329,6 +338,7 @@ int removeFile(const char *pathname) {
     request_t request = prepare_request(REQ_DELETE, 0, pathname, 0);
     debug("Invio richiesta {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
     send_request(fd_socket, request);
+    free(request.file_name);
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {

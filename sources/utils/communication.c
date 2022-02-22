@@ -48,7 +48,11 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
     request.file_name = NULL;
 
     if (file_path != NULL) {
-        request.file_name_length = get_file_name(&request.file_name, file_path);
+        if(is_server != 1) {
+            request.file_name_length = relative2absolute(&request.file_name, file_path);
+        } else {
+            request.file_name_length = get_file_name(&request.file_name, file_path);
+        }
     }
     return request;
 }
