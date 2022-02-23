@@ -11,6 +11,8 @@ Desktop.ini
 .vscode/
 .idea/
 
+tests/outputs/
+
 cs_sock
 
 *.o
