@@ -6,6 +6,8 @@
 #ifndef STATISTICS_H_
 #define STATISTICS_H_
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 
 #include "config.h"

@@ -84,6 +84,13 @@ int get_file_name(char **file_name, const char *pathname) {
     return (int) strlen(*file_name) + 1;    // Il +1 server per l'allocazione corretta delle stringhe
 }
 
+int relative2absolute(char **absolute, const char *relative) {
+    int len;
+    ec_null(*absolute = realpath(relative, NULL), "Percorso non valido")
+    len = (int) strlen(*absolute) + 1;
+    return len;
+}
+
 void *cmalloc(size_t size) {
     void *ret = malloc(size);
 

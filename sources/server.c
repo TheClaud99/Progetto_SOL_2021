@@ -51,8 +51,7 @@ threadpool_t *pool;
 // Variabili external
 int print_debug = 1;
 config_t config;
-stats_t stats = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
+int is_server = 1;
 
 void *signa_handler(void *argument) {
     sigset_t pset;
@@ -380,7 +379,7 @@ void server_run() {
     char buf[BUF_SIZE];
     struct sockaddr_un srv_addr;
     struct sockaddr_un cli_addr;
-    int exit = 0;
+    int server_exit = 0;
     int signum = 0;
 
     listen_sock = create_socket(&srv_addr);
@@ -396,12 +395,12 @@ void server_run() {
 
     socklen = sizeof(cli_addr);
 
-    while (exit != 1) {
+    while (server_exit != 1) {
         nfds = epoll_wait(epfd, events, MAX_EVENTS, -1);
         for (i = 0; i < nfds; i++) {
             if (events[i].data.fd == listen_sock) {
                 /* handle new connection */
-                conn_sock = accept(listen_sock, (struct sockaddr *) &cli_addr, &socklen);
+                ec_meno1(conn_sock = accept(listen_sock, (struct sockaddr *) &cli_addr, &socklen), "accept")
                 epoll_ctl_add(epfd, conn_sock, EPOLLIN);
 
                 Info("New client connected, fd: %d", conn_sock);
@@ -457,7 +456,7 @@ void server_run() {
         }
 
         if (should_exit() == 1 || should_force_exit() == 1) {
-            exit = 1;
+            server_exit = 1;
         }
     }
 

@@ -44,6 +44,7 @@ char removed_file_dir[PATH_MAX];
 char readed_file_dir[PATH_MAX];
 
 int print_debug = 0;
+int is_server = 0;
 int time_to_wait = 0;
 
 
