@@ -33,9 +33,6 @@
 
 struct epoll_event ev, events[MAX_EVENTS];
 
-pthread_mutex_t lofgile_mtx = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_mutex_t statitiche_mtx = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t singals_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 volatile sig_atomic_t sighup = 0; // termina immediatamente tutto
@@ -50,7 +47,6 @@ threadpool_t *pool;
 
 // Variabili external
 int print_debug = 1;
-config_t config;
 int is_server = 1;
 
 void *signa_handler(void *argument) {

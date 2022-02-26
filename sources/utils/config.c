@@ -1,5 +1,6 @@
-
 #include "config.h"
+
+config_t config = {0, 0, 0, 0, ""};
 
 int load_defaults() {
     config.max_workers = 1;

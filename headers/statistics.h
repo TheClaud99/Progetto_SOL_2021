@@ -20,7 +20,7 @@ typedef struct {
     int n_write;
     int n_lock;
     int n_open;
-    int n_opencreate;
+    int n_openlock;
     int n_unlock;
     int n_delete;
     int n_close;
@@ -47,7 +47,7 @@ extern pthread_mutex_t stats_mtx;
 
 void print_stats();
 
-void increase_nfiles();
+void increase_nfiles(int increase_lock);
 
 void decrease_nfiles();
 

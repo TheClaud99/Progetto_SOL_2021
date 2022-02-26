@@ -27,22 +27,18 @@ void print_stats() {
                     "Letture totali: %d\n"
                     "Scritture totali: %d\n"
                     "Lock totali: %d\n"
-                    "Aperture totali: %d\n"
-                    "Aperture&Create totali: %d\n"
+                    "Aperture con lock: %d\n"
                     "Unlock totali: %d\n"
-                    "Cancellazioni totali: %d\n"
                     "Chiusure totali: %d\n"
                     "\nDimensione max file totale raggiunta: %fMB / %fMB\n"
                     "Numero massimo di file raggiunto: %d/%d\n"
                     "Numero di applicazioni dell'algoritmo di rimpiazzamento: %d\n"
-                    "Numero di connessioni concorrenti totali: %d\n"
-                    "Numero di connessioni bloccate: %d\n",
-                    avg_bytes_read, avg_bytes_written, stats.n_read, stats.n_write, stats.n_lock, stats.n_open,
-                    stats.n_opencreate, stats.n_unlock, stats.n_delete, stats.n_close,
+                    "Numero di connessioni concorrenti totali: %d\n",
+                    avg_bytes_read, avg_bytes_written, stats.n_read, stats.n_write, stats.n_lock,
+                    stats.n_openlock, stats.n_unlock, stats.n_close,
                     (stats.max_size_reached / (double) 1000000), (config.max_memory_size / (double) 1000000),
                     stats.max_file_number_reached,
-                    config.max_files, stats.n_replace_applied, stats.max_concurrent_connections,
-                    stats.blocked_connections
+                    config.max_files, stats.n_replace_applied, stats.max_concurrent_connections
             ),
             "asprintf"
     )
@@ -59,13 +55,17 @@ void print_stats() {
     free(stat_string);
 }
 
-void increase_nfiles() {
+void increase_nfiles(int increase_lock) {
     Pthread_mutex_lock(&stats_mtx);
 
     stats.current_files_saved++;
 
     if (stats.max_file_number_reached < stats.current_files_saved) {
         stats.max_file_number_reached = stats.current_files_saved;
+    }
+
+    if (increase_lock == 1) {
+        stats.n_openlock++;
     }
 
     Pthread_mutex_unlock(&stats_mtx);

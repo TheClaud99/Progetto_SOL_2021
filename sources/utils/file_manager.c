@@ -79,7 +79,7 @@ int add_file(char *file_name, int lock, int author) {
     debug("Aggiunto file %s", file_name)
 
     // Aggiorno il numero di file memorizzato
-    increase_nfiles();
+    increase_nfiles(lock);
     return 0;
 }
 
@@ -259,6 +259,10 @@ int lockfile(char *file_name, int client_fd) {
 
     Pthread_mutex_unlock(&f->mtx);
 
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_lock++;
+    Pthread_mutex_unlock(&stats_mtx);
+
     return 0;
 }
 
@@ -286,6 +290,11 @@ int unlockfile(char *file_name, int client_fd) {
     Pthread_cond_signal(&f->lock_cond);
 
     Pthread_mutex_unlock(&f->mtx);
+
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_unlock++;
+    Pthread_mutex_unlock(&stats_mtx);
+
     return 0;
 }
 
@@ -460,6 +469,11 @@ int close_file(char *file_name, int client_fd) {
     FD_CLR(client_fd, &f->opened_by);
 
     Pthread_mutex_unlock(&f->mtx);
+
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_close++;
+    Pthread_mutex_unlock(&stats_mtx);
+
     return 0;
 }
 

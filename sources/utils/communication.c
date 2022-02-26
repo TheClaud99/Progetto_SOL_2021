@@ -48,7 +48,7 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
     request.file_name = NULL;
 
     if (file_path != NULL) {
-        if(is_server != 1) {
+        if (is_server != 1) {
             request.file_name_length = relative2absolute(&request.file_name, file_path);
         } else {
             request.file_name_length = get_file_name(&request.file_name, file_path);
@@ -65,6 +65,11 @@ int send_message(int fd, void *message, size_t size) {
 
     debug("Sended message to %d", fd)
 
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_write++;
+    stats.bytes_written += (int) size;
+    Pthread_mutex_unlock(&stats_mtx);
+
     return 0;
 }
 
@@ -75,6 +80,11 @@ int receive_message(int fd, void *message, size_t size) {
     ec_meno1(ret = readn(fd, message, size), "receive message");
 
     debug("Received message from %d", fd)
+
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_read++;
+    stats.bytes_read += (int) size;
+    Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
 }
@@ -89,15 +99,21 @@ int send_request(int fd, request_t request) {
 
     if (request.file_name_length > 0) {
         ec_meno1(writen(fd, request.file_name, request.file_name_length), "writen")
+        ret += (long) request.file_name_length;
     }
 
-    warning_if(ret != msg_size, "Inviati %ld di %ld bytes della richiesta %d", ret, msg_size, request.id)
+    warning_if(ret < msg_size, "Inviati %ld di %ld bytes della richiesta %d", ret, msg_size, request.id)
 
     if (request.file_name_length > 0) {
         debug("Sended request {id: %d, size: %d, file_name: %s} to %d", request.id, request.size, request.file_name, fd)
     } else {
         debug("Sended request {id: %d, size: %d} to %d", request.id, request.size, fd)
     }
+
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_write++;
+    stats.bytes_written += (int) ret;
+    Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
 }
@@ -115,13 +131,18 @@ request_t receive_request(int fd) {
         ec_meno1(readn(fd, request.file_name, request.file_name_length), "readn")
         debug("Received request {id: %d, size: %d, file_name: %s} from %d", request.id, request.size, request.file_name,
               fd)
+        ret += (long) request.file_name_length;
     } else {
         debug("Received request {id: %d, size: %d} from %d", request.id, request.size, fd)
     }
 
 
-    warning_if(ret != msg_size, "Ricevuti %ld di %ld bytes della richiesta", ret, msg_size)
+    warning_if(ret < msg_size, "Ricevuti %ld di %ld bytes della richiesta", ret, msg_size)
 
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_read++;
+    stats.bytes_read += (int) ret;
+    Pthread_mutex_unlock(&stats_mtx);
 
     return request;
 }
@@ -134,9 +155,14 @@ int send_response(int fd, response_t response) {
 
     ec_meno1(ret = write(fd, &response, msg_size), "send response");
 
-    warning_if(ret != msg_size, "Inviati %ld di %ld bytes della riposta %d", ret, msg_size, response)
+    warning_if(ret < msg_size, "Inviati %ld di %ld bytes della riposta %d", ret, msg_size, response)
 
     debug("Writed response %d", response)
+
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_write++;
+    stats.bytes_written += (int) ret;
+    Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
 }
@@ -178,18 +204,15 @@ response_t receive_response(int fd) {
 
     ec_meno1(ret = read(fd, &response, msg_size), "receive response");
 
-    warning_if(ret != msg_size, "Ricevuti %ld di %ld bytes della risposta", ret, msg_size)
+    warning_if(ret < msg_size, "Ricevuti %ld di %ld bytes della risposta", ret, msg_size)
 
     debug("Received response %d", response)
 
+    Pthread_mutex_lock(&stats_mtx);
+    stats.n_read++;
+    stats.bytes_read += (int) ret;
+    Pthread_mutex_unlock(&stats_mtx);
+
+
     return response;
-}
-
-
-void write_files(char *files) {
-    while (files != NULL) {
-
-
-        files++;
-    }
 }
