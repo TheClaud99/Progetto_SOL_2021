@@ -51,7 +51,6 @@ threadpool_t *pool;
 // Variabili external
 int print_debug = 1;
 config_t config;
-stats_t stats = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int is_server = 1;
 
 void *signa_handler(void *argument) {
