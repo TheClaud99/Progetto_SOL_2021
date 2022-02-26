@@ -247,6 +247,13 @@ int writeFile(const char *pathname, const char *dirname) {
     if (response == RESP_OK) { // Il server ha dato l'ok
         send_message(fd_socket, buffer, size);
         free(buffer);
+
+        response = receive_response(fd_socket);
+        if (response != RESP_SUCCES) {
+            set_errno(response);
+            return -1;
+        }
+
         return 0;
     }
 
@@ -273,6 +280,13 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
 
     if (response == RESP_OK) {
         send_message(fd_socket, buf, size);
+
+        response = receive_response(fd_socket);
+        if (response != RESP_SUCCES) {
+            set_errno(response);
+            return -1;
+        }
+
         return 0;
     }
 

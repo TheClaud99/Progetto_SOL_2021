@@ -295,7 +295,10 @@ void handle_request(int client_fd, request_t request) {
             receive_message(client_fd, buf, request.size);
             if (write_file(request.file_name, buf, request.size, client_fd) == -1) {
                 send_response_on_error(client_fd);
+            } else {
+                send_response(client_fd, RESP_SUCCES);
             }
+
             free(buf);
             break;
         }
@@ -316,6 +319,8 @@ void handle_request(int client_fd, request_t request) {
 
             if (append_to_file(request.file_name, buf, request.size, client_fd) == -1) {
                 send_response_on_error(client_fd);
+            } else {
+                send_response(client_fd, RESP_SUCCES);
             }
 
             free(buf);
