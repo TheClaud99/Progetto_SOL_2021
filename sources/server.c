@@ -39,6 +39,15 @@ volatile sig_atomic_t sighup = 0; // termina immediatamente tutto
 volatile sig_atomic_t sigquit = 0; // termina dopo la fine delle richieste client
 volatile sig_atomic_t sigint = 0; // termina dopo la fine delle richieste client
 
+// Chiavi utilizzate per la memoria locale dei thread
+// Le utilizzo per tenere traccia delle richieste servite da ogni thread
+static pthread_key_t key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+// Statistiche per tracciare richieste servite da ogni thread
+int index_statistiche_thread = 0;
+pthread_mutex_t statistiche_thread_mtx = PTHREAD_MUTEX_INITIALIZER;
+
 int pipesegnali[2];
 int clientspipe[2];
 
@@ -344,12 +353,36 @@ void handle_request(int client_fd, request_t request) {
     }
 }
 
+static void desotroy_key(void *param) {
+    free(param);
+}
+
+static void make_key()
+{
+    (void) pthread_key_create(&key, desotroy_key);
+}
+
 void worker(void *arg) {
     int *val = arg;
     int client_fd = *val;
+    int *id;
     free(val);
     request_t request;
     char buf[BUF_SIZE];
+
+    // Inzializzo il numero di richieste servite da questo thread se ancora non lo è stato fatto
+    (void) pthread_once(&key_once, make_key);
+    if ((id = pthread_getspecific(key)) == NULL) {
+        id = cmalloc(sizeof (int));
+
+        Pthread_mutex_lock(&statistiche_thread_mtx);
+        *id = index_statistiche_thread;
+        stats.workerRequests[*id] = 0;
+        index_statistiche_thread++;
+        Pthread_mutex_unlock(&statistiche_thread_mtx);
+
+        (void) pthread_setspecific(key, id);
+    }
 
     memset(buf, 0, sizeof(buf));
     request = receive_request(client_fd);
@@ -365,6 +398,9 @@ void worker(void *arg) {
 
     // Comunico al master thread di ri-ascoltare nuovamente il descrittore
     write(clientspipe[1], &client_fd, sizeof(int));
+
+    // Incremento il numero di richieste servite
+    stats.workerRequests[*id]++;
 }
 
 /*
@@ -500,6 +536,10 @@ int main(int argc, char *argv[]) {
     } else {
         load_defaults();
     }
+
+    /*========= STATISTTICHE =========*/
+    int worker_requests[config.max_workers];
+    stats.workerRequests = worker_requests; // Richieste servite da ogni thread
 
     /*========= SEGNALI =========*/
 

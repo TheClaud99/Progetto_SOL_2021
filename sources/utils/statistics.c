@@ -46,10 +46,16 @@ void print_stats() {
     // Stampo le statistiche sullo standard output
     puts(stat_string);
     fflush(stdout);
+    for (int i = 0; i < config.max_workers; i++) {
+        Info("Richieste servite dal thread %d: %d", i, stats.workerRequests[i])
+    }
 
     // Scrivo le statistiche nel file dedicato
     ec_null(f = fopen(stats_path, "w"), "fopen")
     ec_cond(fputs(stat_string, f) != EOF, "fputs")
+    for (int i = 0; i < config.max_workers; i++) {
+        ec_meno1(fprintf(f, "Richieste servite dal thread %d: %d\n", i, stats.workerRequests[i]), "fprintf")
+    }
     ec_cond(fclose(f) != EOF, "fclose")
 
     free(stat_string);
