@@ -542,6 +542,9 @@ int main(int argc, char *argv[]) {
     /*========= STATISTTICHE =========*/
     int worker_requests[config.max_workers];
     stats.workerRequests = worker_requests; // Richieste servite da ogni thread
+    for (int i = 0; i < config.max_workers; i++) {
+        stats.workerRequests[i] = 0;
+    }
 
     /*========= SEGNALI =========*/
 
