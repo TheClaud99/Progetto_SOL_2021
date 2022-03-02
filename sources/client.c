@@ -346,24 +346,26 @@ void set_options(int argc, char *argv[]) {
     int count_ops;
     struct timespec max_timeout = {5, 0};
 
+    // File log
+    char charValue[MAXNAMLEN];
+    sprintf(charValue, "tests/outputs/client_log/client_%d.log", getpid());
+
+    // Imposto le operazioni da fare
     count_ops = set_operations(argc, argv);
 
+    // Se il debug è impostato (-p) allora creo un logfile
+    if (print_debug == 1) ec_null(logfile = fopen(charValue, "w"), "fopen")
+
+    // Apro la connessione ed eseguo le operazioni
     openConnection(socket_file_name, 1000, max_timeout);
     execute_ops(count_ops);
     closeConnection(socket_file_name);
+
+    // Se il debug è impostato (-p) chiudo il logfile
+    if (print_debug == 1) ec_cond(fclose(logfile) != EOF, "fclose")
 }
 
 int main(int argc, char *argv[]) {
-
-    char charValue[MAXNAMLEN];
-
-    sprintf(charValue, "tests/outputs/client_log/client_%d_log.txt", getpid());
-    int fd = open(charValue, O_WRONLY | O_TRUNC | O_CREAT | O_APPEND, 0666);
-
-    ec_meno1(dup2(fd, stderr->_fileno), "dup2")
-    ec_meno1(dup2(fd, stdout->_fileno), "dup2")
-    close(fd);
-
 
     set_options(argc, argv);
 
