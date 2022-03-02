@@ -229,7 +229,7 @@ int read_files(char *files) {
     while (file_path != NULL) {
 
         ec_meno1(openFile(file_path, 0), "openFile")
-        ec_meno1(readFile(file_path, &buf, &size), "readFile");
+        ec_meno1(readFile(file_path, &buf, &size), "readFile")
         ec_meno1(closeFile(file_path), "closeFile");
 
         file_name = basename(file_path);
@@ -260,9 +260,9 @@ int delete_files(char *files) {
     char *file_path = strtok_r(files, ",", &save_ptr);
     while (file_path != NULL) {
 
-        ec_meno1(removeFile(file_path), "removeFile");
+        ec_meno1(removeFile(file_path), "removeFile")
 
-        Info("Rimosso file %s", file_path)
+        debug("Rimosso file '%s'", file_path)
 
         file_path = strtok_r(NULL, ",", &save_ptr);
         deleted_files++;

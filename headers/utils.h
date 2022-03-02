@@ -26,6 +26,8 @@
 #define ec_null(c, s)       \
     if ((c) == NULL)        \
     {                       \
+        fprintf(stderr, "Errore: File %s Riga %d\n", __FILE__, __LINE__); \
+        fflush(stderr);                    \
         perror(s);          \
         exit(EXIT_FAILURE); \
     }

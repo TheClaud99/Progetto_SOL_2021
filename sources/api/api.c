@@ -44,6 +44,8 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
         debug("Ricevuto file remoto '%s' (%ld bytes) salvato in '%s'", file_name, file_size, pathname)
 
         fclose(f);
+    } else {
+        debug("Ricevuto e scartato file remoto '%s' (%ld bytes)", file_name, file_size)
     }
 
     free(buf);
@@ -155,6 +157,7 @@ int openFile(const char *pathname, int flags) {
     response = receive_response(fd_socket);
 
     if(response == RESP_SUCCES) {
+        debug("Aperto file '%s'", pathname)
         return 0;
     }
 
@@ -254,6 +257,8 @@ int writeFile(const char *pathname, const char *dirname) {
             return -1;
         }
 
+        debug("Scritto sul server il file '%s', di dimensione %ldB", pathname, file_stat.st_size)
+
         return 0;
     }
 
@@ -287,6 +292,8 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
             return -1;
         }
 
+        debug("Scritti in append su '%s' %ldB", pathname, size)
+
         return 0;
     }
 
@@ -304,6 +311,7 @@ int lockFile(const char *pathname) {
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
+        debug("Lock acquisita su file '%s'", pathname)
         return 0;
     }
 
@@ -321,6 +329,7 @@ int unlockFile(const char *pathname) {
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
+        debug("Rilasciata lock su file '%s'", pathname)
         return 0;
     }
 
@@ -338,6 +347,7 @@ int closeFile(const char *pathname) {
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
+        debug("Chiuso file '%s'", pathname)
         return 0;
     }
 
@@ -350,7 +360,7 @@ int closeFile(const char *pathname) {
 int removeFile(const char *pathname) {
     response_t response;
     request_t request = prepare_request(REQ_DELETE, 0, pathname, 0);
-    debug("Invio richiesta {id: %d, size: %d, file_name: %s}", request.id, request.size, request.file_name)
+
     send_request(fd_socket, request);
     free(request.file_name);
 
