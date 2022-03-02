@@ -51,6 +51,15 @@
         exit(EXIT_FAILURE); \
     }
 
+#define PRINT(s, ...) \
+    fprintf(stdout, s, ##__VA_ARGS__); \
+    fprintf(stdout, "\n");             \
+    fflush(stdout); \
+    if(logfile != NULL) {        \
+        fprintf(logfile, s, ##__VA_ARGS__); \
+        fprintf(logfile, "\n"); \
+    }              \
+
 #define debug(s, ...) \
     if(print_debug == 1) { \
         char debug[1024]; \
@@ -63,6 +72,10 @@
         fprintf(stdout, debug, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
         fflush(stdout); \
+        if(logfile != NULL) {        \
+            fprintf(logfile, debug, ##__VA_ARGS__); \
+            fprintf(logfile, "\n"); \
+        }              \
     }
 
 #define Info(s, ...) \
@@ -76,7 +89,11 @@
         strncat(info, s, 1024 - strlen(info)); \
         fprintf(stdout, info, ##__VA_ARGS__); \
         fprintf(stdout, "\n");             \
-        fflush(stdout); \
+        fflush(stdout);  \
+        if(logfile != NULL) {        \
+            fprintf(logfile, info, ##__VA_ARGS__); \
+            fprintf(logfile, "\n"); \
+        }              \
     }
 
 #define Error(s, ...) \
@@ -84,8 +101,12 @@
         char info[1024] = "ERROR: \0"; \
         strncat(info, s, 1024 - strlen(info)); \
         fprintf(stderr, info, ##__VA_ARGS__); \
-        fprintf(stderr, "\n");             \
-        fflush(stderr); \
+        fprintf(stderr, "\n");         \
+        fflush(stderr);                \
+        if(logfile != NULL) {        \
+            fprintf(logfile, info, ##__VA_ARGS__); \
+            fprintf(logfile, "\n"); \
+        }              \
     }
 
 #define tInfo(s, ...) \
@@ -98,7 +119,11 @@
         strftime(info, 1024, "%Y-%m-%d %H:%M:%S THREAD %%ld: ", tm_info); \
         strncat(info, s, 1024 - strlen(info)); \
         fprintf(stdout, info, pthread_self(), ##__VA_ARGS__); \
-        fprintf(stdout, "\n");             \
+        fprintf(stdout, "\n");       \
+        if(logfile != NULL) {        \
+            fprintf(logfile, info, pthread_self(), ##__VA_ARGS__); \
+            fprintf(logfile, "\n"); \
+        }              \
         fflush(stdout); \
     }
 
@@ -112,6 +137,7 @@
     }
 
 extern int print_debug;
+extern FILE *logfile;
 
 void Pthread_mutex_lock(pthread_mutex_t *mtx);
 

@@ -104,6 +104,7 @@ test1:
 	@echo "*********************************************"
 	@rm -f valgrind_output.txt
 	@bash scripts/test1.sh
+	@bash scripts/statistiche.sh tests/outputs/Server/server.log
 	@echo "*********************************************"
 	@echo "************** TEST 1 SUPERATO **************"
 	@echo "*********************************************"
@@ -116,6 +117,7 @@ test2:
 	@echo "*********************************************"
 	@rm -f valgrind_output.txt
 	@bash scripts/test2.sh
+	@bash scripts/statistiche.sh tests/outputs/Server/server.log
 	@echo "*********************************************"
 	@echo "************** TEST 2 SUPERATO **************"
 	@echo "*********************************************"
@@ -128,6 +130,7 @@ test3:
 	@echo "*********************************************"
 	@rm -f valgrind_output.txt
 	@bash scripts/test3.sh
+	@bash scripts/statistiche.sh tests/outputs/Server/server.log
 	@echo "*********************************************"
 	@echo "************** TEST 3 SUPERATO **************"
 	@echo "*********************************************"

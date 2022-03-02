@@ -44,10 +44,9 @@ void print_stats() {
     )
 
     // Stampo le statistiche sullo standard output
-    puts(stat_string);
-    fflush(stdout);
+    PRINT(stat_string)
     for (int i = 0; i < config.max_workers; i++) {
-        Info("Richieste servite dal thread %d: %d", i, stats.workerRequests[i])
+        PRINT("Richieste servite dal thread %d: %d", i, stats.workerRequests[i])
     }
 
     // Scrivo le statistiche nel file dedicato

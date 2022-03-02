@@ -29,7 +29,6 @@
 
 #define MAX_EVENTS      32
 #define BUF_SIZE        16
-#define WELCOME_MESSAGE "Connessione avvenuta con successo"
 
 struct epoll_event ev, events[MAX_EVENTS];
 
@@ -537,6 +536,9 @@ int main(int argc, char *argv[]) {
         load_defaults();
     }
 
+    /*========= LOGGING =========*/
+    ec_null(logfile = fopen(config.logfile, "w"), "fopen")
+
     /*========= STATISTTICHE =========*/
     int worker_requests[config.max_workers];
     stats.workerRequests = worker_requests; // Richieste servite da ogni thread
@@ -583,6 +585,11 @@ int main(int argc, char *argv[]) {
     close(clientspipe[0]);
     close(clientspipe[1]);
 
+    // Stampo le statistiche
     print_stats();
+
+    // Chiudo il file di log
+    ec_cond(fclose(logfile) != EOF, "fclose")
+
     return 0;
 }
