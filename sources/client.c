@@ -234,17 +234,23 @@ int read_files(char *files) {
 
         file_name = basename(file_path);
         strcpy(save_path, readed_file_dir);
-        if (save_path[PATH_MAX - 1] != '/') {
-            strcat(save_path, "/");
+        if(strlen(readed_file_dir) > 0) {
+            if (save_path[PATH_MAX - 1] != '/') {
+                strcat(save_path, "/");
+            }
+            strcat(save_path, file_name);
+
+            if((file = fopen(save_path, "wb")) != NULL) {
+                fwrite(buf, 1, size, file);
+            }
+
+            debug("File '%s' (%ld bytes) salavato in '%s'", file_name, size, save_path)
+
+            fclose(file);
+        } else {
+            debug("Ricevuto e scartato file '%s' (%ld bytes)", file_name, size)
         }
-        strcat(save_path, file_name);
 
-        ec_null(file = fopen(save_path, "wb"), "fopen read_files")
-        fwrite(buf, 1, size, file);
-
-        Info("File %s salavato in %s", file_name, save_path)
-
-        fclose(file);
         free(buf);
         file_path = strtok_r(NULL, ",", &save_ptr);
         readed_files++;
