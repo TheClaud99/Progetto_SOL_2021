@@ -30,7 +30,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
     // Aspetto che il server mandi i dati del file
     receive_message(fd_socket, buf, file_size);
 
-    if (dirname != NULL) {
+    if (dirname != NULL && strlen(dirname) > 0) {
         // Preparo il file in cui scrivere
         strcpy(pathname, dirname);
         if (pathname[PATH_MAX - 1] != '/') {
