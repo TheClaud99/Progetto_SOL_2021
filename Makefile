@@ -41,7 +41,7 @@ client: libs/libcomm.so libs/libapi.so
 
 # --------- LIBRERIE -----------
 
-libs/libcomm.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/utils.o
+libs/libcomm.so: $(OBJECT_FOLDER)/communication.o $(OBJECT_FOLDER)/utils.o $(OBJECT_FOLDER)/statistics.o $(OBJECT_FOLDER)/config.o $(OBJECT_FOLDER)/ini.o
 	$(CC) -shared -o $(LIB_FOLDER)/libcomm.so $^
 
 libs/libserver.so: $(OBJECT_FOLDER)/config.o $(OBJECT_FOLDER)/statistics.o $(OBJECT_FOLDER)/ini.o $(OBJECT_FOLDER)/utils.o $(OBJECT_FOLDER)/file_manager.o $(OBJECT_FOLDER)/hashtable.o $(OBJECT_FOLDER)/threadpool.o
@@ -104,6 +104,7 @@ test1:
 	@echo "*********************************************"
 	@rm -f valgrind_output.txt
 	@bash scripts/test1.sh
+	@bash scripts/statistiche.sh tests/outputs/Server/server.log
 	@echo "*********************************************"
 	@echo "************** TEST 1 SUPERATO **************"
 	@echo "*********************************************"
@@ -116,6 +117,7 @@ test2:
 	@echo "*********************************************"
 	@rm -f valgrind_output.txt
 	@bash scripts/test2.sh
+	@bash scripts/statistiche.sh tests/outputs/Server/server.log
 	@echo "*********************************************"
 	@echo "************** TEST 2 SUPERATO **************"
 	@echo "*********************************************"
@@ -128,6 +130,7 @@ test3:
 	@echo "*********************************************"
 	@rm -f valgrind_output.txt
 	@bash scripts/test3.sh
+	@bash scripts/statistiche.sh tests/outputs/Server/server.log
 	@echo "*********************************************"
 	@echo "************** TEST 3 SUPERATO **************"
 	@echo "*********************************************"

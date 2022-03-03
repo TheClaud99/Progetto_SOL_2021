@@ -29,18 +29,23 @@
 
 #define MAX_EVENTS      32
 #define BUF_SIZE        16
-#define WELCOME_MESSAGE "Connessione avvenuta con successo"
 
 struct epoll_event ev, events[MAX_EVENTS];
 
-pthread_mutex_t lofgile_mtx = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_mutex_t statitiche_mtx = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t singals_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 volatile sig_atomic_t sighup = 0; // termina immediatamente tutto
 volatile sig_atomic_t sigquit = 0; // termina dopo la fine delle richieste client
 volatile sig_atomic_t sigint = 0; // termina dopo la fine delle richieste client
+
+// Chiavi utilizzate per la memoria locale dei thread
+// Le utilizzo per tenere traccia delle richieste servite da ogni thread
+static pthread_key_t key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+// Statistiche per tracciare richieste servite da ogni thread
+int index_statistiche_thread = 0;
+pthread_mutex_t statistiche_thread_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 int pipesegnali[2];
 int clientspipe[2];
@@ -50,7 +55,6 @@ threadpool_t *pool;
 
 // Variabili external
 int print_debug = 1;
-config_t config;
 int is_server = 1;
 
 void *signa_handler(void *argument) {
@@ -295,7 +299,10 @@ void handle_request(int client_fd, request_t request) {
             receive_message(client_fd, buf, request.size);
             if (write_file(request.file_name, buf, request.size, client_fd) == -1) {
                 send_response_on_error(client_fd);
+            } else {
+                send_response(client_fd, RESP_SUCCES);
             }
+
             free(buf);
             break;
         }
@@ -316,6 +323,8 @@ void handle_request(int client_fd, request_t request) {
 
             if (append_to_file(request.file_name, buf, request.size, client_fd) == -1) {
                 send_response_on_error(client_fd);
+            } else {
+                send_response(client_fd, RESP_SUCCES);
             }
 
             free(buf);
@@ -343,12 +352,36 @@ void handle_request(int client_fd, request_t request) {
     }
 }
 
+static void desotroy_key(void *param) {
+    free(param);
+}
+
+static void make_key()
+{
+    (void) pthread_key_create(&key, desotroy_key);
+}
+
 void worker(void *arg) {
     int *val = arg;
     int client_fd = *val;
+    int *id;
     free(val);
     request_t request;
     char buf[BUF_SIZE];
+
+    // Inzializzo il numero di richieste servite da questo thread se ancora non lo è stato fatto
+    (void) pthread_once(&key_once, make_key);
+    if ((id = pthread_getspecific(key)) == NULL) {
+        id = cmalloc(sizeof (int));
+
+        Pthread_mutex_lock(&statistiche_thread_mtx);
+        *id = index_statistiche_thread;
+        stats.workerRequests[*id] = 0;
+        index_statistiche_thread++;
+        Pthread_mutex_unlock(&statistiche_thread_mtx);
+
+        (void) pthread_setspecific(key, id);
+    }
 
     memset(buf, 0, sizeof(buf));
     request = receive_request(client_fd);
@@ -364,6 +397,9 @@ void worker(void *arg) {
 
     // Comunico al master thread di ri-ascoltare nuovamente il descrittore
     write(clientspipe[1], &client_fd, sizeof(int));
+
+    // Incremento il numero di richieste servite
+    stats.workerRequests[*id]++;
 }
 
 /*
@@ -500,6 +536,16 @@ int main(int argc, char *argv[]) {
         load_defaults();
     }
 
+    /*========= LOGGING =========*/
+    ec_null(logfile = fopen(config.logfile, "w"), "fopen")
+
+    /*========= STATISTTICHE =========*/
+    int worker_requests[config.max_workers];
+    stats.workerRequests = worker_requests; // Richieste servite da ogni thread
+    for (int i = 0; i < config.max_workers; i++) {
+        stats.workerRequests[i] = 0;
+    }
+
     /*========= SEGNALI =========*/
 
     // Ignoro i sengali per poterli gestire con il thread
@@ -542,6 +588,11 @@ int main(int argc, char *argv[]) {
     close(clientspipe[0]);
     close(clientspipe[1]);
 
+    // Stampo le statistiche
     print_stats();
+
+    // Chiudo il file di log
+    ec_cond(fclose(logfile) != EOF, "fclose")
+
     return 0;
 }

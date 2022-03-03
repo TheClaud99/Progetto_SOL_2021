@@ -40,13 +40,11 @@ typedef struct configurazione {
     int max_memory_size;
     int max_files;
     char socket_file_name[PATH_MAX];
-    /*char log_file_name[PATH_MAX];
-    char stats_file_name[PATH_MAX];*/
+    char logfile[PATH_MAX];
+    /*char stats_file_name[PATH_MAX];*/
 } config_t;
 
 extern config_t config;
-
-extern FILE *logfile;
 
 int load_defaults();
 

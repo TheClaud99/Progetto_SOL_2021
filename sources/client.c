@@ -229,22 +229,28 @@ int read_files(char *files) {
     while (file_path != NULL) {
 
         ec_meno1(openFile(file_path, 0), "openFile")
-        ec_meno1(readFile(file_path, &buf, &size), "readFile");
+        ec_meno1(readFile(file_path, &buf, &size), "readFile")
         ec_meno1(closeFile(file_path), "closeFile");
 
         file_name = basename(file_path);
         strcpy(save_path, readed_file_dir);
-        if (save_path[PATH_MAX - 1] != '/') {
-            strcat(save_path, "/");
+        if(strlen(readed_file_dir) > 0) {
+            if (save_path[PATH_MAX - 1] != '/') {
+                strcat(save_path, "/");
+            }
+            strcat(save_path, file_name);
+
+            if((file = fopen(save_path, "wb")) != NULL) {
+                fwrite(buf, 1, size, file);
+            }
+
+            debug("File '%s' (%ld bytes) salavato in '%s'", file_name, size, save_path)
+
+            fclose(file);
+        } else {
+            debug("Ricevuto e scartato file '%s' (%ld bytes)", file_name, size)
         }
-        strcat(save_path, file_name);
 
-        ec_null(file = fopen(save_path, "wb"), "fopen read_files")
-        fwrite(buf, 1, size, file);
-
-        Info("File %s salavato in %s", file_name, save_path)
-
-        fclose(file);
         free(buf);
         file_path = strtok_r(NULL, ",", &save_ptr);
         readed_files++;
@@ -260,9 +266,9 @@ int delete_files(char *files) {
     char *file_path = strtok_r(files, ",", &save_ptr);
     while (file_path != NULL) {
 
-        ec_meno1(removeFile(file_path), "removeFile");
+        ec_meno1(removeFile(file_path), "removeFile")
 
-        Info("Rimosso file %s", file_path)
+        debug("Rimosso file '%s'", file_path)
 
         file_path = strtok_r(NULL, ",", &save_ptr);
         deleted_files++;
@@ -346,24 +352,26 @@ void set_options(int argc, char *argv[]) {
     int count_ops;
     struct timespec max_timeout = {5, 0};
 
+    // File log
+    char charValue[MAXNAMLEN];
+    sprintf(charValue, "tests/outputs/client_log/client_%d.log", getpid());
+
+    // Imposto le operazioni da fare
     count_ops = set_operations(argc, argv);
 
+    // Se il debug è impostato (-p) allora creo un logfile
+    if (print_debug == 1) ec_null(logfile = fopen(charValue, "w"), "fopen")
+
+    // Apro la connessione ed eseguo le operazioni
     openConnection(socket_file_name, 1000, max_timeout);
     execute_ops(count_ops);
     closeConnection(socket_file_name);
+
+    // Se il debug è impostato (-p) chiudo il logfile
+    if (print_debug == 1) ec_cond(fclose(logfile) != EOF, "fclose")
 }
 
 int main(int argc, char *argv[]) {
-
-    char charValue[MAXNAMLEN];
-
-    sprintf(charValue, "tests/outputs/client_log/client_%d_log.txt", getpid());
-    int fd = open(charValue, O_WRONLY | O_TRUNC | O_CREAT | O_APPEND, 0666);
-
-    ec_meno1(dup2(fd, stderr->_fileno), "dup2")
-    ec_meno1(dup2(fd, stdout->_fileno), "dup2")
-    close(fd);
-
 
     set_options(argc, argv);
 

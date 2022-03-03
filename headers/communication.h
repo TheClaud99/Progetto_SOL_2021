@@ -14,6 +14,7 @@
 #include <linux/limits.h>
 
 #include "utils.h"
+#include "statistics.h"
 
 /**
  *  RICHIESTA
@@ -79,8 +80,6 @@ int readn(long fd, void *buf, size_t size);
 int writen(long fd, void *buf, size_t size);
 
 request_t prepare_request(request_id_t id, size_t size, const char *file_path, int flags);
-
-void write_files(char *files);
 
 int send_message(int fd, void *message, size_t size);
 

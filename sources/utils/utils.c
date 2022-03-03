@@ -1,5 +1,7 @@
 #include "utils.h"
 
+FILE *logfile = NULL;
+
 void Pthread_mutex_lock(pthread_mutex_t *mtx) {
     int err;
     if ((err = pthread_mutex_lock(mtx)) != 0) {

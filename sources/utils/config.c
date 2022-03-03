@@ -1,5 +1,6 @@
-
 #include "config.h"
+
+config_t config = {0, 0, 0, 0, ""};
 
 int load_defaults() {
     config.max_workers = 1;
@@ -7,6 +8,7 @@ int load_defaults() {
     config.max_memory_size = 128000000;
     config.max_files = 10000;
     strcpy(config.socket_file_name, "sock_file.sk");
+    strcpy(config.logfile, "tests/outputs/Server/server.log");
 
     return 0;
 }
@@ -23,6 +25,7 @@ int load_config(char *filename) {
     config.max_memory_size = (int) strtol(ini_get(config_file, "settings", "max_memory_size"), NULL, 10);
     config.max_files = (int) strtol(ini_get(config_file, "settings", "max_files"), NULL, 10);
     strcpy(config.socket_file_name, ini_get(config_file, "settings", "socket_file_name"));
+    strcpy(config.logfile, ini_get(config_file, "settings", "logfile"));
     ini_free(config_file);
 
     return 0;
