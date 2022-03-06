@@ -60,8 +60,6 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
 int send_message(int fd, void *message, size_t size) {
     ec_meno1(writen(fd, message, size), "send message")
 
-    ec_meno1(ret = writen(fd, message, size), "send message");
-
     debug("Sended message to %d", fd)
 
     Pthread_mutex_lock(&stats_mtx);
@@ -75,8 +73,6 @@ int send_message(int fd, void *message, size_t size) {
 int receive_message(int fd, void *message, size_t size) {
 
     ec_meno1(readn(fd, message, size), "receive message")
-
-    ec_meno1(ret = readn(fd, message, size), "receive message");
 
     debug("Received message from %d", fd)
 

@@ -4,8 +4,6 @@
 **/
 
 
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,9 +16,6 @@
 #include <time.h>
 #include "utils.h"
 #include "communication.h"
-
-// Se impostato, la modalità debug è attiva
-int verbose;
 
 // Socket con il quale comunicare col server
 int fd_socket;

@@ -18,19 +18,6 @@
 #include "utils.h"
 #include "ini.h"
 
-
-/**
-    @brief  Contiene l'insieme di errori che possono verificarsi durante la lettura del config.
-**/
-enum ErroriConfig {
-    ERR_FILEOPENING = -1,
-    ERR_INVALIDKEY = -2,
-    ERR_NEGVALUE = -3,
-    ERR_EMPTYVALUE = -4,
-    ERR_UNSETVALUES = -5,
-    ERR_ILLEGAL = -6,
-};
-
 /**
     @brief  Contiene i parametri di configurazione del server.
 **/
@@ -41,7 +28,6 @@ typedef struct configurazione {
     int max_files;
     char socket_file_name[PATH_MAX];
     char logfile[PATH_MAX];
-    /*char stats_file_name[PATH_MAX];*/
 } config_t;
 
 extern config_t config;

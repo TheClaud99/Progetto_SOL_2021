@@ -44,7 +44,6 @@ typedef struct {
 } request_t;
 
 
-#define O_OPEN      0
 #define O_CREATE    1
 #define O_LOCK      2
 
