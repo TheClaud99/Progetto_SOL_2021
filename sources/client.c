@@ -152,11 +152,11 @@ int write_or_append(char *file_path) {
         ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
         fclose(file);
 
-        ec_meno1(appendToFile(file_path, buffer, size, removed_file_dir), "appendToFile");
+        ec_meno1(appendToFile(file_path, buffer, size, removed_file_dir), "appendToFile")
 
         free(buffer);
 
-        ec_meno1(closeFile(file_path), "closeFile");
+        ec_meno1(closeFile(file_path), "closeFile")
     }
 
     return 0;
@@ -230,7 +230,7 @@ int read_files(char *files) {
 
         ec_meno1(openFile(file_path, 0), "openFile")
         ec_meno1(readFile(file_path, &buf, &size), "readFile")
-        ec_meno1(closeFile(file_path), "closeFile");
+        ec_meno1(closeFile(file_path), "closeFile")
 
         file_name = basename(file_path);
         strcpy(save_path, readed_file_dir);

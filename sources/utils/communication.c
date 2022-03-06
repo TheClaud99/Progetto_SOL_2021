@@ -58,8 +58,7 @@ request_t prepare_request(request_id_t id, size_t size, const char *file_path, i
 }
 
 int send_message(int fd, void *message, size_t size) {
-
-    long ret;
+    ec_meno1(writen(fd, message, size), "send message")
 
     ec_meno1(ret = writen(fd, message, size), "send message");
 
@@ -75,7 +74,7 @@ int send_message(int fd, void *message, size_t size) {
 
 int receive_message(int fd, void *message, size_t size) {
 
-    long ret;
+    ec_meno1(readn(fd, message, size), "receive message")
 
     ec_meno1(ret = readn(fd, message, size), "receive message");
 
@@ -95,7 +94,7 @@ int send_request(int fd, request_t request) {
     long msg_size = sizeof(request);
     long ret;
 
-    ec_meno1(ret = write(fd, &request, msg_size), "send request");
+    ec_meno1(ret = write(fd, &request, msg_size), "send request")
 
     if (request.file_name_length > 0) {
         ec_meno1(writen(fd, request.file_name, request.file_name_length), "writen")
@@ -124,7 +123,7 @@ request_t receive_request(int fd) {
     long msg_size = sizeof(request_t);
     long ret;
 
-    ec_meno1(ret = read(fd, &request, msg_size), "receive request");
+    ec_meno1(ret = read(fd, &request, msg_size), "receive request")
 
     if (request.file_name_length > 0) {
         request.file_name = cmalloc(request.file_name_length);
@@ -153,7 +152,7 @@ int send_response(int fd, response_t response) {
     long msg_size = sizeof(response_t);
     long ret;
 
-    ec_meno1(ret = write(fd, &response, msg_size), "send response");
+    ec_meno1(ret = write(fd, &response, msg_size), "send response")
 
     warning_if(ret < msg_size, "Inviati %ld di %ld bytes della riposta %d", ret, msg_size, response)
 
@@ -202,7 +201,7 @@ response_t receive_response(int fd) {
     long msg_size = sizeof(response_t);
     long ret;
 
-    ec_meno1(ret = read(fd, &response, msg_size), "receive response");
+    ec_meno1(ret = read(fd, &response, msg_size), "receive response")
 
     warning_if(ret < msg_size, "Ricevuti %ld di %ld bytes della risposta", ret, msg_size)
 

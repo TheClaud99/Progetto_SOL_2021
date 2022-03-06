@@ -6,7 +6,6 @@
 #ifndef COMMUNICATION_H_
 #define COMMUNICATION_H_
 
-#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <string.h>

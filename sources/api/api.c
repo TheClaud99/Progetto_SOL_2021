@@ -37,7 +37,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
             strcat(pathname, "/");
         }
         strcat(pathname, file_name);
-        ec_null(f = fopen(pathname, "wb"), "fopen read and save");
+        ec_null(f = fopen(pathname, "wb"), "fopen read and save")
 
         // Scrivo nel file
         fwrite(buf, 1, file_size, f); // size - 1 perché non scrivo il carattere di terminazione
@@ -119,7 +119,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
     while (connect(fd_socket, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
 
         if (errno == ENOENT) {
-            ec_meno1(msleep(msec), "msleep");
+            ec_meno1(msleep(msec), "msleep")
         } else {
             PERROR("connect")
         }
@@ -138,7 +138,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
 
 
 int closeConnection(const char *sockname) {
-    ec_meno1(close(fd_socket), "Close");
+    ec_meno1(close(fd_socket), "Close")
 
     debug("Connessione chiusa con %s, fd: %d", sockname, fd_socket)
 

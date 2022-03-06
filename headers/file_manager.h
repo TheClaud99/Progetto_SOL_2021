@@ -7,7 +7,7 @@
 #ifndef FILE_MANAGER_H_
 #define FILE_MANAGER_H_
 
-#define _GNU_SOURCE
+#define  _POSIX_C_SOURCE 200809L
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -57,8 +57,6 @@ void init_file_manager();
 
 int open_file(char *file_name, int lock, int client_fd);
 
-int file_exists(char *file_name);
-
 int add_file(char *file_name, int lock, int author);
 
 int remove_file(char* file_name, int client_fd);
@@ -70,8 +68,6 @@ file_data_t *get_file(char *file_name);
 int write_file(char *file_name, void *data, size_t size, int client_fd);
 
 int read_file(char *file_name, void **buf, size_t *size, int client_fd);
-
-int read_random_file(void **buf, size_t *size, char filename[], int remove);
 
 int readn_files(readn_ret_t files[], int max_files);
 
