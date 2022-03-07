@@ -3,6 +3,10 @@
  * @brief   Contiene l'header dei metodi utilizzati dal client per comunicare col server.
 **/
 
+#ifndef API_H_
+#define API_H_
+
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,8 +18,6 @@
 #include <sys/stat.h>
 #include <linux/limits.h>
 #include <time.h>
-#include "utils.h"
-#include "communication.h"
 
 // Socket con il quale comunicare col server
 int fd_socket;
@@ -146,3 +148,5 @@ int closeFile(const char* pathname);
  * @returns 0 in caso di successo, -1 in caso di fallimento (setta errno)
 **/
 int removeFile(const char* pathname);
+
+#endif /* API_H_ */

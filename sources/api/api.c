@@ -3,7 +3,8 @@
  * @brief   Implementazione delle funzioni dell'api disponibili al client
 **/
 
-#include <string.h>
+#include "utils.h"
+#include "communication.h"
 #include "api.h"
 
 static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
