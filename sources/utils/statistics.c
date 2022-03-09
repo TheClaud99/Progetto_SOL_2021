@@ -44,7 +44,7 @@ void print_stats() {
     )
 
     // Stampo le statistiche sullo standard output
-    PRINT(stat_string)
+    PRINT(stat_string, "")
     for (int i = 0; i < config.max_workers; i++) {
         PRINT("Richieste servite dal thread %d: %d", i, stats.workerRequests[i])
     }

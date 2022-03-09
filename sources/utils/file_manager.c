@@ -198,7 +198,7 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
     f->locked_by = client_fd;
     f->waiters--;
 
-    Info("Lock sul file acquisita")
+    Info("Lock sul file acquisita", "")
 
     // Prendo i dati sul file letto
     *size = f->length;
