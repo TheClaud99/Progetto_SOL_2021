@@ -3,17 +3,10 @@
 
 #define _GNU_SOURCE
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
-#include <inttypes.h>
-#include <arpa/inet.h>
-#include <errno.h>
 #include <pthread.h>
-#include <linux/limits.h>
-#include <sched.h>
-#include <string.h>
-#include <math.h>
+#include <time.h>
+#include <errno.h>
 
 #define ec_meno1(c, s)      \
     if ((c) == -1)          \

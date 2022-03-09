@@ -1,4 +1,11 @@
 #include "utils.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <sched.h>
+#include <string.h>
+#include <math.h>
+
 
 FILE *logfile = NULL;
 
