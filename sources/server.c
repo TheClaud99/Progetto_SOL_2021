@@ -471,9 +471,12 @@ void server_run() {
 
                     // Devo creare un'area di memoria apposita per evitare che il valore di client_fd venga
                     // cambiato mentre è in coda
-                    int *client_fd_ptr = cmalloc(sizeof(int));
+                    int *client_fd_ptr = cmalloc(sizeof(int)), error;
                     *client_fd_ptr = client_fd;
-                    threadpool_add(pool, worker, client_fd_ptr, 0);
+                    if((error = threadpool_add(pool, worker, client_fd_ptr, 0)) < 0) {
+                        Error("Errore %d threadpool_add", error)
+                        break;
+                    }
                     epoll_ctl(epfd, EPOLL_CTL_DEL, client_fd, NULL);
                 }
 
@@ -572,8 +575,11 @@ int main(int argc, char *argv[]) {
 
     /*========= CHIUSURA =========*/
     debug("Chiudo thread pool", "")
+    int error;
     graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda
-    ec_meno1(threadpool_destroy(pool, graceful_exit), "threadpool_destroy")
+    if ((error = threadpool_destroy(pool, graceful_exit)) < 0) {
+        Error("Errore %d threadpool_destroy", error)
+    }
 
     debug("Chiudo singal handler", "")
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
