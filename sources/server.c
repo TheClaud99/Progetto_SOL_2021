@@ -73,7 +73,7 @@ void *signa_handler(void *argument) {
     ec_meno1(sigaddset(&pset, SIGTERM), "sigaddset SIGTERM")
 
 
-    debug("Imposto la maschera")
+    debug("Imposto la maschera", "")
 
     //applico la maschera pset
     ec_cond((errno = pthread_sigmask(SIG_SETMASK, &pset, NULL)) == 0, "pthread_sigmask")
@@ -571,18 +571,18 @@ int main(int argc, char *argv[]) {
 
 
     /*========= CHIUSURA =========*/
-    debug("Chiudo thread pool")
+    debug("Chiudo thread pool", "")
     graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda
     ec_meno1(threadpool_destroy(pool, graceful_exit), "threadpool_destroy")
 
-    debug("Chiudo singal handler")
+    debug("Chiudo singal handler", "")
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
 
-    debug("Chiudo file managaer")
+    debug("Chiudo file managaer", "")
     close_file_manager();
 
     // Chiudo le pipe
-    debug("Chiudo le pipe")
+    debug("Chiudo le pipe", "")
     close(pipesegnali[0]);
     close(pipesegnali[1]);
     close(clientspipe[0]);

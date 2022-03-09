@@ -131,7 +131,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
-        puts("Connessione avvenuta con successo");
+        debug("Connessione avvenuta con successo", "");
     }
 
     return 0;
@@ -279,7 +279,7 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
-        debug("Server pieno, avvio ricezione file")
+        debug("Server pieno, avvio ricezione file", "")
         receive_files(dirname, 0);
         response = RESP_OK;
     }

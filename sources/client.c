@@ -319,7 +319,7 @@ void execute_ops(int count_ops) {
             case ':': { // manca un argomento
                 switch (optopt) {
                     case 'R': { // può non avere argomenti (0 di default)
-                        debug("Leggo tutti i file del server")
+                        debug("Leggo tutti i file del server", "")
                         readNFiles(0, readed_file_dir);
                         break;
                     }
