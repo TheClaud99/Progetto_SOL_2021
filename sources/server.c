@@ -54,7 +54,7 @@ int clientspipe[2];
 threadpool_t *pool;
 
 // Variabili external
-int print_debug = 1;
+int print_debug = 0;
 int is_server = 1;
 
 void *signa_handler(void *argument) {

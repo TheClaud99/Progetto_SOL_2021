@@ -5,7 +5,7 @@
 #
 
 # avvio il server
-valgrind --leak-check=full ./server -conf tests/test3/config_3.ini &
+./server -conf tests/test3/config_3.ini &
 
 # mi salvo il pid ($! viene sostituito col PID del processo più recente avviato in background)
 pid=$!
