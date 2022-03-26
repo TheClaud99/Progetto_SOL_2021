@@ -9,28 +9,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <signal.h>
-#include <pthread.h>
-#include <limits.h>
 #include <dirent.h>
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <time.h>
 #include <getopt.h>
 
 #include "api.h"
 #include "communication.h"
 
-#define HELLO_MESSAGE   "Hello" // body dell'handshake iniziale HELLO
-#define LOG_FOLDER_NAME "TestDirectory/output/Client/" // cartella dove caricare il file di log (DEVE terminare con un /)
-#define LOG_FILE_NAME   "client_log.txt" // nome del file di log
 #define MAX_LINE        256
-#define MAX_ACTIONS        256
 #define MAX_PARAMS 256
-
-FILE *fileLog; // puntatore al file di log del client
 
 char socket_file_name[PATH_MAX];
 
@@ -152,11 +140,11 @@ int write_or_append(char *file_path) {
         ec_cond(file_stat.st_size == fread(buffer, 1, file_stat.st_size, file), "writeFile fread")
         fclose(file);
 
-        ec_meno1(appendToFile(file_path, buffer, size, removed_file_dir), "appendToFile");
+        ec_meno1(appendToFile(file_path, buffer, size, removed_file_dir), "appendToFile")
 
         free(buffer);
 
-        ec_meno1(closeFile(file_path), "closeFile");
+        ec_meno1(closeFile(file_path), "closeFile")
     }
 
     return 0;
@@ -230,7 +218,7 @@ int read_files(char *files) {
 
         ec_meno1(openFile(file_path, 0), "openFile")
         ec_meno1(readFile(file_path, &buf, &size), "readFile")
-        ec_meno1(closeFile(file_path), "closeFile");
+        ec_meno1(closeFile(file_path), "closeFile")
 
         file_name = basename(file_path);
         strcpy(save_path, readed_file_dir);
@@ -331,7 +319,7 @@ void execute_ops(int count_ops) {
             case ':': { // manca un argomento
                 switch (optopt) {
                     case 'R': { // può non avere argomenti (0 di default)
-                        debug("Leggo tutti i file del server")
+                        debug("Leggo tutti i file del server", "")
                         readNFiles(0, readed_file_dir);
                         break;
                     }

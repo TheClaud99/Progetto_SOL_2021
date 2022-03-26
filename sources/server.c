@@ -30,7 +30,7 @@
 #define MAX_EVENTS      32
 #define BUF_SIZE        16
 
-struct epoll_event ev, events[MAX_EVENTS];
+struct epoll_event ev;
 
 pthread_mutex_t singals_mtx = PTHREAD_MUTEX_INITIALIZER;
 
@@ -63,21 +63,21 @@ void *signa_handler(void *argument) {
     int pfd = *(int *) argument; // Pipe sulla quale inviare la notifica
 
     //azzero la maschera puntata da pset
-    ec_meno1(sigemptyset(&pset), "Azzeramento pset");
+    ec_meno1(sigemptyset(&pset), "Azzeramento pset")
 
     //metto a 1 la posizione del segnale indicato come secondo parametro nella maschera pset
-    ec_meno1(sigaddset(&pset, SIGINT), "sigaddset SIGINT");
-    ec_meno1(sigaddset(&pset, SIGQUIT), "sigaddset SIGQUIT");
-    ec_meno1(sigaddset(&pset, SIGHUP), "sigaddset SIGHUP");
-    ec_meno1(sigaddset(&pset, SIGTSTP), "sigaddset SIGTSTP");
-    ec_meno1(sigaddset(&pset, SIGTERM), "sigaddset SIGTERM");
+    ec_meno1(sigaddset(&pset, SIGINT), "sigaddset SIGINT")
+    ec_meno1(sigaddset(&pset, SIGQUIT), "sigaddset SIGQUIT")
+    ec_meno1(sigaddset(&pset, SIGHUP), "sigaddset SIGHUP")
+    ec_meno1(sigaddset(&pset, SIGTSTP), "sigaddset SIGTSTP")
+    ec_meno1(sigaddset(&pset, SIGTERM), "sigaddset SIGTERM")
 
 
-    debug("Imposto la maschera")
+    debug("Imposto la maschera", "")
 
     //applico la maschera pset
-    ec_cond((errno = pthread_sigmask(SIG_SETMASK, &pset, NULL)) == 0, "pthread_sigmask");
-    ec_cond((errno = sigwait(&pset, &signum)) == 0, "pthread_sigmask");
+    ec_cond((errno = pthread_sigmask(SIG_SETMASK, &pset, NULL)) == 0, "pthread_sigmask")
+    ec_cond((errno = sigwait(&pset, &signum)) == 0, "pthread_sigmask")
 
     debug("Ricevuto sengale %d", signum)
 
@@ -85,7 +85,6 @@ void *signa_handler(void *argument) {
         case SIGTSTP:
         case SIGTERM:
             exit(EXIT_FAILURE);
-            break;
         case SIGQUIT:
             Pthread_mutex_lock(&singals_mtx);
             sigquit = 1;
@@ -159,15 +158,15 @@ int create_socket(struct sockaddr_un *addr) {
 
     // controllo se il file socket esiste già, nel caso lo elimino
     if (access(config.socket_file_name, F_OK) == 0) {
-        ec_meno1(remove(config.socket_file_name), "Delete socket file");
+        ec_meno1(remove(config.socket_file_name), "Delete socket file")
     }
 
-    ec_meno1(listen_sock = socket(AF_UNIX, SOCK_STREAM, 0), "Socket");
+    ec_meno1(listen_sock = socket(AF_UNIX, SOCK_STREAM, 0), "Socket")
 
     set_sockaddr(addr);
-    ec_meno1(bind(listen_sock, (struct sockaddr *) addr, sizeof(*addr)), "Binding");
+    ec_meno1(bind(listen_sock, (struct sockaddr *) addr, sizeof(*addr)), "Binding")
 
-    ec_meno1(listen(listen_sock, config.max_connections), "Listen");
+    ec_meno1(listen(listen_sock, config.max_connections), "Listen")
 
     return listen_sock;
 }
@@ -246,11 +245,11 @@ void handle_request(int client_fd, request_t request) {
 
             if (request.flags & O_CREATE) {
 
-                ec_response(add_file(request.file_name, lock, client_fd), client_fd);
+                ec_response(add_file(request.file_name, lock, client_fd), client_fd)
 
                 debug("Creato file %s", request.file_name)
             } else {
-                ec_response(open_file(request.file_name, lock, client_fd), client_fd);
+                ec_response(open_file(request.file_name, lock, client_fd), client_fd)
             }
 
             send_response(client_fd, RESP_SUCCES);
@@ -264,7 +263,7 @@ void handle_request(int client_fd, request_t request) {
             void *buf;
             size_t size;
 
-            ec_response(read_file(request.file_name, &buf, &size, client_fd), client_fd);
+            ec_response(read_file(request.file_name, &buf, &size, client_fd), client_fd)
 
             send_response(client_fd, RESP_OK);
 
@@ -332,19 +331,19 @@ void handle_request(int client_fd, request_t request) {
         }
 
         case REQ_LOCK:
-            ec_response(lockfile(request.file_name, client_fd), client_fd);
+            ec_response(lockfile(request.file_name, client_fd), client_fd)
             send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_UNLOCK:
-            ec_response(unlockfile(request.file_name, client_fd), client_fd);
+            ec_response(unlockfile(request.file_name, client_fd), client_fd)
             send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_CLOSE:
-            ec_response(close_file(request.file_name, client_fd), client_fd);
+            ec_response(close_file(request.file_name, client_fd), client_fd)
             send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_DELETE:
-            ec_response(remove_file(request.file_name, client_fd), client_fd);
+            ec_response(remove_file(request.file_name, client_fd), client_fd)
             send_response(client_fd, RESP_SUCCES);
             break;
         case REQ_SEND_FILE:
@@ -417,6 +416,7 @@ void server_run() {
     struct sockaddr_un cli_addr;
     int server_exit = 0;
     int signum = 0;
+    struct epoll_event events[MAX_EVENTS];
 
     listen_sock = create_socket(&srv_addr);
 
@@ -439,7 +439,7 @@ void server_run() {
                 ec_meno1(conn_sock = accept(listen_sock, (struct sockaddr *) &cli_addr, &socklen), "accept")
                 epoll_ctl_add(epfd, conn_sock, EPOLLIN);
 
-                Info("New client connected, fd: %d", conn_sock);
+                Info("New client connected, fd: %d", conn_sock)
                 increase_connections();
 
                 send_response(conn_sock, RESP_SUCCES);
@@ -471,9 +471,12 @@ void server_run() {
 
                     // Devo creare un'area di memoria apposita per evitare che il valore di client_fd venga
                     // cambiato mentre è in coda
-                    int *client_fd_ptr = cmalloc(sizeof(int));
+                    int *client_fd_ptr = cmalloc(sizeof(int)), error;
                     *client_fd_ptr = client_fd;
-                    threadpool_add(pool, worker, client_fd_ptr, 0);
+                    if((error = threadpool_add(pool, worker, client_fd_ptr, 0)) < 0) {
+                        Error("Errore %d threadpool_add", error)
+                        break;
+                    }
                     epoll_ctl(epfd, EPOLL_CTL_DEL, client_fd, NULL);
                 }
 
@@ -501,26 +504,26 @@ void server_run() {
 // Imosta che i segnali vengano ignorati per il thread che la richiama
 void singlas_ignore() {
     sigset_t pset;
-    ec_meno1(sigfillset(&pset), "inizializzazione set segnali");
-    ec_meno1(pthread_sigmask(SIG_SETMASK, &pset, NULL), "mascheramento iniziale segnali");
+    ec_meno1(sigfillset(&pset), "inizializzazione set segnali")
+    ec_meno1(pthread_sigmask(SIG_SETMASK, &pset, NULL), "mascheramento iniziale segnali")
 
     // Ignoro il sengale SIGPIPE
     struct sigaction ignoro;
     memset(&ignoro, 0, sizeof(ignoro));
     ignoro.sa_handler = SIG_IGN;
-    ec_meno1(sigaction(SIGPIPE, &ignoro, NULL), "SC per ignorare segnale SIGPIPE");
+    ec_meno1(sigaction(SIGPIPE, &ignoro, NULL), "SC per ignorare segnale SIGPIPE")
 
 
     // tolgo la maschera inserita all'inizio, la lascio solo per i segnali da gestire con thread
-    ec_meno1(sigemptyset(&pset), "settaggio a 0 di tutte le flag di insieme");
-    ec_meno1(sigaddset(&pset, SIGINT), "settaggio a 1 della flag per SIGINT");
-    ec_meno1(sigaddset(&pset, SIGTERM), "settaggio a 1 della flag per SIGTERM"); // windows
-    ec_meno1(sigaddset(&pset, SIGQUIT), "settaggio a 1 della flag per SIGQUIT");
-    ec_meno1(sigaddset(&pset, SIGHUP), "settaggio a 1 della flag per SIGHUP");
-    ec_meno1(sigaddset(&pset, SIGUSR1), "settaggio a 1 della flag per SIGUSR1");
-    ec_meno1(sigaddset(&pset, SIGUSR2), "settaggio a 1 della flag per SIGUSR2");
+    ec_meno1(sigemptyset(&pset), "settaggio a 0 di tutte le flag di insieme")
+    ec_meno1(sigaddset(&pset, SIGINT), "settaggio a 1 della flag per SIGINT")
+    ec_meno1(sigaddset(&pset, SIGTERM), "settaggio a 1 della flag per SIGTERM") // windows
+    ec_meno1(sigaddset(&pset, SIGQUIT), "settaggio a 1 della flag per SIGQUIT")
+    ec_meno1(sigaddset(&pset, SIGHUP), "settaggio a 1 della flag per SIGHUP")
+    ec_meno1(sigaddset(&pset, SIGUSR1), "settaggio a 1 della flag per SIGUSR1")
+    ec_meno1(sigaddset(&pset, SIGUSR2), "settaggio a 1 della flag per SIGUSR2")
     ec_meno1(pthread_sigmask(SIG_SETMASK, &pset, NULL),
-             "rimozione mascheramento iniziale dei segnali ignorati o gestiti in modo custom");
+             "rimozione mascheramento iniziale dei segnali ignorati o gestiti in modo custom")
 }
 
 int main(int argc, char *argv[]) {
@@ -564,25 +567,28 @@ int main(int argc, char *argv[]) {
     init_file_manager();
 
     /*========= THREAD WORKERS =========*/
-    ec_null((pool = threadpool_create(config.max_workers, 256, 0)), "threadpool_create");
+    ec_null((pool = threadpool_create(config.max_workers, 256, 0)), "threadpool_create")
 
     /*========= ESECUZIONE SERVER =========*/
     server_run();
 
 
     /*========= CHIUSURA =========*/
-    debug("Chiudo thread pool")
+    debug("Chiudo thread pool", "")
+    int error;
     graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda
-    ec_meno1(threadpool_destroy(pool, graceful_exit), "threadpool_destroy")
+    if ((error = threadpool_destroy(pool, graceful_exit)) < 0) {
+        Error("Errore %d threadpool_destroy", error)
+    }
 
-    debug("Chiudo singal handler")
+    debug("Chiudo singal handler", "")
     ec_meno1(pthread_join(singnal_handler_thread, NULL), "pthread_join singal handler")
 
-    debug("Chiudo file managaer")
+    debug("Chiudo file managaer", "")
     close_file_manager();
 
     // Chiudo le pipe
-    debug("Chiudo le pipe")
+    debug("Chiudo le pipe", "")
     close(pipesegnali[0]);
     close(pipesegnali[1]);
     close(clientspipe[0]);

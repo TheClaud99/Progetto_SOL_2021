@@ -3,7 +3,8 @@
  * @brief   Implementazione delle funzioni dell'api disponibili al client
 **/
 
-#include <string.h>
+#include "utils.h"
+#include "communication.h"
 #include "api.h"
 
 static void set_sockaddr(const char *sockname, struct sockaddr_un *addr) {
@@ -37,7 +38,7 @@ int read_and_save(const char *dirname, const char *file_name, size_t file_size) 
             strcat(pathname, "/");
         }
         strcat(pathname, file_name);
-        ec_null(f = fopen(pathname, "wb"), "fopen read and save");
+        ec_null(f = fopen(pathname, "wb"), "fopen read and save")
 
         // Scrivo nel file
         fwrite(buf, 1, file_size, f); // size - 1 perché non scrivo il carattere di terminazione
@@ -119,7 +120,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
     while (connect(fd_socket, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
 
         if (errno == ENOENT) {
-            ec_meno1(msleep(msec), "msleep");
+            ec_meno1(msleep(msec), "msleep")
         } else {
             PERROR("connect")
         }
@@ -130,7 +131,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
 
     response = receive_response(fd_socket);
     if (response == RESP_SUCCES) {
-        puts("Connessione avvenuta con successo");
+        debug("Connessione avvenuta con successo", "")
     }
 
     return 0;
@@ -138,7 +139,7 @@ int openConnection(const char *sockname, int msec, const struct timespec abstime
 
 
 int closeConnection(const char *sockname) {
-    ec_meno1(close(fd_socket), "Close");
+    ec_meno1(close(fd_socket), "Close")
 
     debug("Connessione chiusa con %s, fd: %d", sockname, fd_socket)
 
@@ -242,7 +243,7 @@ int writeFile(const char *pathname, const char *dirname) {
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
-        debug("Server pieno, avvio ricezione file")
+        debug("Server pieno, avvio ricezione file", "")
         receive_files(dirname, 0);
         response = RESP_OK;
     }
@@ -278,7 +279,7 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
     response = receive_response(fd_socket);
 
     if (response == RESP_FULL) { // Il server è pieno e deve espellere dei file
-        debug("Server pieno, avvio ricezione file")
+        debug("Server pieno, avvio ricezione file", "")
         receive_files(dirname, 0);
         response = RESP_OK;
     }

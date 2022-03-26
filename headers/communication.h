@@ -6,7 +6,6 @@
 #ifndef COMMUNICATION_H_
 #define COMMUNICATION_H_
 
-#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <string.h>
@@ -45,7 +44,6 @@ typedef struct {
 } request_t;
 
 
-#define O_OPEN      0
 #define O_CREATE    1
 #define O_LOCK      2
 

@@ -4,7 +4,7 @@ hashtable_t *ht;
 pthread_mutex_t ht_mtx = PTHREAD_MUTEX_INITIALIZER;
 
 void init_file_manager() {
-    ec_null(ht = ht_create(config.max_files), "hash table create");
+    ec_null(ht = ht_create(config.max_files), "hash table create")
 }
 
 int open_file(char *file_name, int lock, int client_fd) {
@@ -36,17 +36,6 @@ int open_file(char *file_name, int lock, int client_fd) {
     return 0;
 }
 
-int file_exists(char *file_name) {
-    file_data_t *f;
-
-    if ((f = ht_get(ht, file_name)) == NULL) {
-        return 0;
-    }
-
-    return 1;
-}
-
-
 int add_file(char *file_name, int lock, int author) {
 
     if (ht_get(ht, file_name) != NULL) {
@@ -74,7 +63,7 @@ int add_file(char *file_name, int lock, int author) {
 
     // Inserisco il file nella lista
     Pthread_mutex_lock(&ht_mtx);
-    ec_cond(ht_put(ht, file_name, f) != HT_ERROR, "ht_put");
+    ec_cond(ht_put(ht, file_name, f) != HT_ERROR, "ht_put")
     Pthread_mutex_unlock(&ht_mtx);
     debug("Aggiunto file %s", file_name)
 
@@ -86,7 +75,7 @@ int add_file(char *file_name, int lock, int author) {
 int remove_file(char *file_name, int client_fd) {
     Pthread_mutex_lock(&ht_mtx);
     file_data_t *f = get_file(file_name);
-    size_t size = 0;
+    size_t size;
 
     if (f == NULL) {
         Pthread_mutex_unlock(&ht_mtx);
@@ -209,7 +198,7 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
     f->locked_by = client_fd;
     f->waiters--;
 
-    Info("Lock sul file acquisita")
+    Info("Lock sul file acquisita", "")
 
     // Prendo i dati sul file letto
     *size = f->length;

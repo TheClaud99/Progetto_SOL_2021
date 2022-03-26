@@ -1,4 +1,11 @@
 #include "utils.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <sched.h>
+#include <string.h>
+#include <math.h>
+
 
 FILE *logfile = NULL;
 
@@ -29,15 +36,6 @@ void Pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mtx) {
     }
 }
 
-void Pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime) {
-    int err;
-    if ((err = pthread_cond_timedwait(cond, mutex, abstime)) != 0 && err != ETIMEDOUT) {
-        errno = err;
-        perror("cond wait");
-        pthread_exit((void *) &errno);
-    }
-}
-
 void Pthread_cond_signal(pthread_cond_t *cond) {
     int err;
     if ((err = pthread_cond_signal(cond)) != 0) {
@@ -47,11 +45,6 @@ void Pthread_cond_signal(pthread_cond_t *cond) {
     }
 }
 
-void summstotimespec(struct timespec *ts, long msec) {
-    int nano_sec = (ts->tv_nsec + (msec % 1000) * 1000000);
-    ts->tv_sec += msec / 1000 + nano_sec / 1000000000;
-    ts->tv_nsec = nano_sec % 1000000000;
-}
 
 /* msleep(): Sleep for the requested number of milliseconds. */
 int msleep(long msec) {
@@ -71,13 +64,6 @@ int msleep(long msec) {
     } while (res && errno == EINTR);
 
     return res;
-}
-
-struct timespec get_abs_time_from_now(int seconds_from_now) {
-    struct timespec abstime;
-    time_t now = time(NULL);//Gestire errore
-    abstime.tv_sec = now + seconds_from_now;
-    return abstime;
 }
 
 int get_file_name(char **file_name, const char *pathname) {

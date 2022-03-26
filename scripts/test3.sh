@@ -5,7 +5,7 @@
 #
 
 # avvio il server
-valgrind --leak-check=full ./server -conf tests/test3/config_3.ini > tests/outputs/Server/valgrind_output.txt 2>&1 &
+valgrind --leak-check=full ./server -conf tests/test3/config_3.ini &
 
 # mi salvo il pid ($! viene sostituito col PID del processo più recente avviato in background)
 pid=$!
@@ -24,8 +24,10 @@ while [ $SECONDS -le $breakLoop ]; do
     -d tests/outputs/readed  \
     -D tests/outputs/deleted \
     -W "tests/a/d/test - Copia (${index}).txt"  \
+    -w "tests/a/d/" 3  \
+    -r "tests/a/d/test - Copia (${index}).txt"  \
     -l "$PWD/tests/a/d/test - Copia (${index}).txt" \
-    -R \
+    -R 3 \
     -c "$PWD/tests/a/d/test - Copia (${index}).txt" &
     index=$((index+1))
   if [ $((index%20)) = 1 ]; then

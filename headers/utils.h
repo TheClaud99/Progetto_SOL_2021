@@ -3,17 +3,10 @@
 
 #define _GNU_SOURCE
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
-#include <inttypes.h>
-#include <arpa/inet.h>
-#include <errno.h>
 #include <pthread.h>
-#include <linux/limits.h>
-#include <sched.h>
-#include <string.h>
-#include <math.h>
+#include <time.h>
+#include <errno.h>
 
 #define ec_meno1(c, s)      \
     if ((c) == -1)          \
@@ -147,16 +140,10 @@ void Pthread_mutex_unlock(pthread_mutex_t *mtx);
 
 void Pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mtx);
 
-void Pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime);
-
 void Pthread_cond_signal(pthread_cond_t *cond);
-
-void summstotimespec(struct timespec *ts, long msec);
 
 /* msleep(): Sleep for the requested number of milliseconds. */
 int msleep(long msec);
-
-struct timespec get_abs_time_from_now(int seconds_from_now);
 
 int get_file_name(char **file_name, const char *pathname);
 
