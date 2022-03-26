@@ -30,7 +30,7 @@ while [ $SECONDS -le $breakLoop ]; do
     -R 3 \
     -c "$PWD/tests/a/d/test - Copia (${index}).txt" &
     index=$((index+1))
-  if [ $((index%20)) = 1 ]; then
+  if [ $((index%10)) = 1 ]; then
       index=1
       sleep 0.5
   fi
