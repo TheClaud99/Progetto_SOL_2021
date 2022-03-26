@@ -30,8 +30,10 @@ typedef struct configurazione {
     char logfile[PATH_MAX];
 } config_t;
 
+// Configurazione globale
 extern config_t config;
 
+// Carica le impostazioni di default se non viene specificato un file di configurazione
 int load_defaults();
 
 // Dato il nome del file di configurazione, carica la i parametri nella config globale

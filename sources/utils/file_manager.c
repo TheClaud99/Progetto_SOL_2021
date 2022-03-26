@@ -74,6 +74,10 @@ int add_file(char *file_name, int lock, int author) {
     return 0;
 }
 
+file_data_t *get_file(char *file_name) {
+    return ht_get(ht, file_name);
+}
+
 int remove_file(char *file_name, int client_fd) {
     Pthread_mutex_lock(&ht_mtx);
     file_data_t *f = get_file(file_name);
@@ -221,10 +225,6 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
     remove_file(selected_file_name, client_fd);
 
     return 0;
-}
-
-file_data_t *get_file(char *file_name) {
-    return ht_get(ht, file_name);
 }
 
 int lockfile(char *file_name, int client_fd) {
