@@ -36,18 +36,15 @@ echo "$1"
 #  fi
 #done
 
-# Avvio 10 loop che eseguono client in continuazione
+# Avvio 10 loop che per 30 secondi lanciano client consecutivamente
 CLS=()
 for i in {1..10}; do
     ./scripts/start_client.sh &
     CLS+=($!)
 done
 
-sleep 30
-
-# Arresto i loop che lanciano client
+# Aspetto che terminino
 for i in "${CLS[@]}"; do
-    kill -9 ${i} > /dev/null
     wait ${i}
 done
 
