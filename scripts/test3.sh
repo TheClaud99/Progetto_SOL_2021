@@ -18,22 +18,37 @@ sleep 2
 # timer di 30 secondi prima di uccidere il server
 breakLoop=$((SECONDS+30))
 echo "$1"
-index=1
-while [ $SECONDS -le $breakLoop ]; do
-    ./client -f ./sock_file.sk \
-    -d tests/outputs/readed  \
-    -D tests/outputs/deleted \
-    -W "tests/a/d/test - Copia (${index}).txt"  \
-    -w "tests/a/d/" 3  \
-    -r "tests/a/d/test - Copia (${index}).txt"  \
-    -l "$PWD/tests/a/d/test - Copia (${index}).txt" \
-    -R 3 \
-    -c "$PWD/tests/a/d/test - Copia (${index}).txt" &
-    index=$((index+1))
-  if [ $((index%10)) = 1 ]; then
-      index=1
-      sleep 0.5
-  fi
+#index=1
+#while [ $SECONDS -le $breakLoop ]; do
+#    ./client -f ./sock_file.sk \
+#    -d tests/outputs/readed  \
+#    -D tests/outputs/deleted \
+#    -W "tests/a/d/test - Copia (${index}).txt"  \
+#    -w "tests/a/d/" 3  \
+#    -r "tests/a/d/test - Copia (${index}).txt"  \
+#    -l "$PWD/tests/a/d/test - Copia (${index}).txt" \
+#    -R 3 \
+#    -c "$PWD/tests/a/d/test - Copia (${index}).txt" &
+#    index=$((index+1))
+#  if [ $((index%10)) = 1 ]; then
+#      index=1
+#      sleep 0.5
+#  fi
+#done
+
+# Avvio 10 loop che eseguono client in continuazione
+CLS=()
+for i in {1..10}; do
+    ./scripts/start_client.sh &
+    CLS+=($!)
+done
+
+sleep 30
+
+# Arresto i loop che lanciano client
+for i in "${CLS[@]}"; do
+    kill -9 ${i} > /dev/null
+    wait ${i}
 done
 
 # terminazione immediata al server
