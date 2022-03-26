@@ -12,6 +12,7 @@ while [ $SECONDS -le $breakLoop ]; do
 		-w "tests/a/d/" 3 \
 		-r "tests/a/d/test - Copia (${index}).txt" \
 		-R 3 \
+		-l "$PWD/tests/a/d/test - Copia (${index}).txt" \
 		-c "$PWD/tests/a/d/test - Copia (${index}).txt" >/dev/null 2>/dev/null
 	index=$((index + 1))
 
