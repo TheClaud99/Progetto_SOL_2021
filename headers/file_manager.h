@@ -77,6 +77,8 @@ int lockfile(char *file_name, int client_fd);
 
 int unlockfile(char *file_name, int client_fd);
 
+void wakeup_threads();
+
 int close_file(char *file_name, int client_fd);
 
 void close_file_manager();

@@ -574,6 +574,10 @@ int main(int argc, char *argv[]) {
 
 
     /*========= CHIUSURA =========*/
+
+    // Risveglio tutti i threads che potrebbero essere rimasti bloccati in attesa di lock nel file manager
+    wakeup_threads();
+
     debug("Chiudo thread pool", "")
     int error;
     graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda
