@@ -494,7 +494,7 @@ void server_run() {
             }
         }
 
-        if (should_exit() == 1 || should_force_exit() == 1) {
+        if ((should_exit() == 1 && stats.current_connections == 0) || should_force_exit() == 1) {
             server_exit = 1;
         }
     }
