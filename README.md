@@ -6,16 +6,15 @@ File storage server
 
 | Feature                                   | Implemented? |
 |-------------------------------------------|--------------|
-| File log                                  | ✗            |
-| File per statistiche stats.sh             | ✗            |
+| File log                                  | ✔            |
+| File per statistiche stats.sh             | ✔            |
 | Compressione                              | ✗            |
-| flag -R                                   | ✗            |
-| flag -w                                   | ✗            |
-| Gestione concorrente dell'accesso ai file | ✗            |
-| Compressione                              | ✗            |
-| test1                                     | ✗            |
-| test2                                     | ✗            |
-| test3                                     | ✗            |
-| Espulsione dei file al client             | ✗            |
-| Lock (-l)                                 | ✗            |
-| Unlock (-u)                               | ✗            |
+| flag -R                                   | ✔            |
+| flag -w                                   | ✔            |
+| Gestione concorrente dell'accesso ai file | ✔            |
+| test1                                     | ✔            |
+| test2                                     | ✔            |
+| test3                                     | ✔            |
+| Espulsione dei file al client             | ✔            |
+| Lock (-l)                                 | ✔            |
+| Unlock (-u)                               | ✔            |

@@ -494,6 +494,7 @@ void server_run() {
             }
         }
 
+        // Se è stata avviata la chiusura lenta e i client sono zero, oppure è stata avviata la chisura veloce
         if ((should_exit() == 1 && stats.current_connections == 0) || should_force_exit() == 1) {
             server_exit = 1;
         }
