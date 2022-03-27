@@ -2,7 +2,7 @@
 
 File storage server
 
-## Cose da implementre
+## Cose da implementare
 
 | Feature                                   | Implemented? |
 |-------------------------------------------|--------------|
