@@ -1,3 +1,9 @@
+/**
+ * @file    utils.h
+ * @brief   Fornisce una serie di funzioni di utilità
+**/
+
+
 #ifndef UTILS_H_
 #define UTILS_H_
 
@@ -131,7 +137,10 @@
         fflush(stdout); \
     }
 
+// se scrivere o no le stampe di debug
 extern int print_debug;
+
+// File di log su cui andare a scrivere in output
 extern FILE *logfile;
 
 void Pthread_mutex_lock(pthread_mutex_t *mtx);
@@ -145,16 +154,22 @@ void Pthread_cond_signal(pthread_cond_t *cond);
 /* msleep(): Sleep for the requested number of milliseconds. */
 int msleep(long msec);
 
+// Dato un path a un file, scrive in file_name il nome del file e ritorna la lunghezza del nome
 int get_file_name(char **file_name, const char *pathname);
 
+// Converte un path relativo in un path assoluto
 int relative2absolute(char **absolute, const char *relative);
 
+// Ritorna un area di memoria di size specificato e azzerata
 void *cmalloc(size_t size);
 
+// Converte una timespec in numero di millisecondi
 long toms(struct timespec _t);
 
+// Ritorna il tempo corrente in millisecondi
 long millis();
 
+// Confronta due timespec e ritorna -1,0 o 1 rispettivamente se a < b, se a = b o se a > b
 int tscmp(struct timespec a, struct timespec b);
 
 #endif /* UTILS_H_ */

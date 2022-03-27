@@ -54,7 +54,7 @@ int clientspipe[2];
 threadpool_t *pool;
 
 // Variabili external
-int print_debug = 1;
+int print_debug = 0;
 int is_server = 1;
 
 void *signa_handler(void *argument) {
@@ -494,7 +494,7 @@ void server_run() {
             }
         }
 
-        if (should_exit() == 1 || should_force_exit() == 1) {
+        if ((should_exit() == 1 && stats.current_connections == 0) || should_force_exit() == 1) {
             server_exit = 1;
         }
     }
@@ -574,6 +574,10 @@ int main(int argc, char *argv[]) {
 
 
     /*========= CHIUSURA =========*/
+
+    // Risveglio tutti i threads che potrebbero essere rimasti bloccati in attesa di lock nel file manager
+    wakeup_threads();
+
     debug("Chiudo thread pool", "")
     int error;
     graceful_exit = should_force_exit() != 1;     // Se graceful_exit = 1 finisco di esegue le richieste rimaste in coda

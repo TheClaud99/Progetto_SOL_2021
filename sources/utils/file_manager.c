@@ -2,9 +2,11 @@
 
 hashtable_t *ht;
 pthread_mutex_t ht_mtx = PTHREAD_MUTEX_INITIALIZER;
+int fm_exit; // a 1 se il file manager deve chiudere
 
 void init_file_manager() {
     ec_null(ht = ht_create(config.max_files), "hash table create")
+    fm_exit = 0;
 }
 
 int open_file(char *file_name, int lock, int client_fd) {
@@ -70,6 +72,10 @@ int add_file(char *file_name, int lock, int author) {
     // Aggiorno il numero di file memorizzato
     increase_nfiles(lock);
     return 0;
+}
+
+file_data_t *get_file(char *file_name) {
+    return ht_get(ht, file_name);
 }
 
 int remove_file(char *file_name, int client_fd) {
@@ -194,6 +200,14 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
             errno = ENOENT;
             return -1;
         }
+
+        // Il server sta venenvo chiuso
+        if (fm_exit== 1) {
+            Pthread_cond_signal(&f->lock_cond);
+            Pthread_mutex_unlock(&f->mtx);
+            errno = ENOENT;
+            return -1;
+        }
     }
     f->locked_by = client_fd;
     f->waiters--;
@@ -211,10 +225,6 @@ int remove_LRU(void** buf, size_t *size, char **file_name, int client_fd) {
     remove_file(selected_file_name, client_fd);
 
     return 0;
-}
-
-file_data_t *get_file(char *file_name) {
-    return ht_get(ht, file_name);
 }
 
 int lockfile(char *file_name, int client_fd) {
@@ -242,7 +252,16 @@ int lockfile(char *file_name, int client_fd) {
             errno = ENOENT;
             return -1;
         }
+
+        // Il server sta venenvo chiuso
+        if (fm_exit== 1) {
+            Pthread_cond_signal(&f->lock_cond);
+            Pthread_mutex_unlock(&f->mtx);
+            errno = ENOENT;
+            return -1;
+        }
     }
+
     f->locked_by = client_fd;
     f->waiters--;
 
@@ -464,6 +483,26 @@ int close_file(char *file_name, int client_fd) {
     Pthread_mutex_unlock(&stats_mtx);
 
     return 0;
+}
+
+// Risveglia i thread che sono in attesa della lock su un file
+void wakeup_threads() {
+    file_data_t *f;
+    fm_exit = 1;
+    Pthread_mutex_lock(&ht_mtx);
+
+    hash_elem_it it = HT_ITERATOR(ht);
+    char *k = ht_iterate_keys(&it);
+
+    while (k != NULL) {
+        f = ht_get(ht, k);
+        Pthread_mutex_lock(&f->mtx);
+        pthread_cond_broadcast(&f->lock_cond);
+        Pthread_mutex_unlock(&f->mtx);
+        k = ht_iterate_keys(&it);
+    }
+
+    Pthread_mutex_unlock(&ht_mtx);
 }
 
 void close_file_manager() {
